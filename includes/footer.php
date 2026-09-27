@@ -32,6 +32,7 @@
                     <ul class="space-y-2 text-[11px]">
                         <li><a href="index.php" class="hover:text-amber-300 transition-colors">Beranda Utama</a></li>
                         <li><a href="koleksi.php" class="hover:text-amber-300 transition-colors">Ruang Pamer Koleksi</a></li>
+                        <li><a href="lelang.php" class="hover:text-amber-300 transition-colors flex items-center gap-1.5"><i data-lucide="gavel" class="w-3 h-3 text-amber-400"></i><span>Ruang Lelang Eksklusif</span></a></li>
                         <li><a href="filosofi.php" class="hover:text-amber-300 transition-colors">Filosofi & Craftsmanship</a></li>
                         <li><a href="whitelist.php" class="hover:text-amber-300 transition-colors">Akses VIP & Kurasi</a></li>
                         <li><a href="verifikasi.php" class="hover:text-amber-300 transition-colors">Verifikasi Sertifikat COA</a></li>

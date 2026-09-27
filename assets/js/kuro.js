@@ -18,7 +18,9 @@ const KuroApp = {
         adminOrders: [],
         adminProducts: [],
         adminActiveTab: 'orders',
-        searchDebounceTimer: null
+        searchDebounceTimer: null,
+        auctionFilter: 'all',
+        auctionsList: []
     },
 
     init: async function() {
@@ -346,10 +348,24 @@ const KuroApp = {
         }
     },
 
-    setCategoryFilter: function(cat) {
+    filterCategory: function(cat) {
         this.playZenChime('chime');
         this.state.activeCategory = cat;
         
+        // Handle new category buttons in koleksi.php: cat-all, cat-limited, cat-premium, cat-deluxe, cat-reguler
+        const categories = ['all', 'limited', 'premium', 'deluxe', 'reguler'];
+        categories.forEach(c => {
+            const btn = document.getElementById(`cat-${c}`);
+            if (btn) {
+                if (c === cat) {
+                    btn.className = 'px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-amber-400 bg-amber-500/20 text-amber-300 font-bold transition-all shadow-md';
+                } else {
+                    btn.className = 'px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-stone-800 bg-stone-900 text-stone-400 hover:text-white hover:border-stone-700 transition-all';
+                }
+            }
+        });
+
+        // Legacy filter buttons support
         ['all', 'series24', 'bespoke1of1'].forEach(c => {
             const btn = document.getElementById(`filter-cat-${c}`);
             if (btn) {
@@ -362,6 +378,10 @@ const KuroApp = {
         });
 
         this.renderShowroom();
+    },
+
+    setCategoryFilter: function(cat) {
+        this.filterCategory(cat);
     },
 
     renderPrivateNotice: function() {
@@ -423,38 +443,65 @@ const KuroApp = {
         const container = document.getElementById('showroom-grid');
         if (!container) return;
 
-        let filtered = this.state.products;
-        if (this.state.activeCategory === 'series24') {
-            filtered = filtered.filter(p => p.edition_type === 'Series-24');
-        } else if (this.state.activeCategory === 'bespoke1of1') {
-            filtered = filtered.filter(p => p.edition_type === '1-of-1');
+        let filtered = this.state.products || [];
+        const cat = this.state.activeCategory;
+
+        if (cat === 'limited') {
+            filtered = filtered.filter(p => p.series_category === 'Limited Edition' || p.edition_type === '1-of-1' || p.stock === 1);
+        } else if (cat === 'premium') {
+            filtered = filtered.filter(p => p.series_category === 'Premium Series' || (p.stock > 1 && p.stock <= 8));
+        } else if (cat === 'deluxe') {
+            filtered = filtered.filter(p => p.series_category === 'Deluxe Series' || (p.stock > 8 && p.stock <= 12));
+        } else if (cat === 'reguler') {
+            filtered = filtered.filter(p => p.series_category === 'Reguler Series' || p.stock > 12);
+        } else if (cat === 'bespoke1of1') {
+            filtered = filtered.filter(p => p.series_category === 'Limited Edition' || p.edition_type === '1-of-1');
+        } else if (cat === 'series24') {
+            filtered = filtered.filter(p => p.series_category !== 'Limited Edition' && p.edition_type !== '1-of-1');
         }
 
         if (filtered.length === 0) {
-            container.innerHTML = `<div class="col-span-3 text-center py-12 text-stone-500">Tidak ada produk dalam kategori ini.</div>`;
+            container.innerHTML = `<div class="col-span-full text-center py-16 text-stone-500 font-serif-luxury text-sm">Tidak ada karya parfum dalam kurasi ini.</div>`;
             return;
         }
 
         container.innerHTML = filtered.map(p => {
-            const isSeries24 = (p.edition_type === 'Series-24');
-            const isAcquired = (p.status === 'acquired' || (isSeries24 && p.stock <= 0));
+            const isLimited = (p.series_category === 'Limited Edition' || p.edition_type === '1-of-1' || p.stock === 1);
+            const isPremium = (p.series_category === 'Premium Series');
+            const isDeluxe = (p.series_category === 'Deluxe Series');
+            const isReguler = (!isLimited && !isPremium && !isDeluxe);
+            const isAcquired = (p.status === 'acquired' || p.stock <= 0);
             const isReserved = (p.status === 'reserved');
             const isAvailable = (!isAcquired && !isReserved);
 
             // Badge Top Left
             let editionBadge = '';
-            if (isSeries24) {
+            if (isLimited) {
                 editionBadge = `
-                    <span class="bg-gradient-to-r from-amber-500/20 to-amber-600/30 text-amber-300 border border-amber-400/50 text-[10px] font-mono px-2.5 py-1 rounded-full uppercase tracking-wider font-bold shadow-lg flex items-center gap-1">
+                    <span class="bg-gradient-to-r from-red-950/90 to-stone-900 text-amber-300 border border-amber-500/60 text-[10px] font-mono px-2.5 py-1 rounded-full uppercase tracking-wider font-bold shadow-lg flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span>⭐ LIMITED EDITION (1-OF-1)</span>
+                    </span>
+                `;
+            } else if (isPremium) {
+                editionBadge = `
+                    <span class="bg-amber-950/80 text-amber-300 border border-amber-500/50 text-[10px] font-mono px-2.5 py-1 rounded-full uppercase tracking-wider font-bold shadow-lg flex items-center gap-1.5">
                         <i data-lucide="layers" class="w-3 h-3 text-amber-400"></i>
-                        <span>SERIES 24 (BATCH 24)</span>
+                        <span>🔶 PREMIUM SERIES (LIMIT ${p.stock || p.initial_stock || 8})</span>
+                    </span>
+                `;
+            } else if (isDeluxe) {
+                editionBadge = `
+                    <span class="bg-blue-950/80 text-blue-300 border border-blue-500/50 text-[10px] font-mono px-2.5 py-1 rounded-full uppercase tracking-wider font-bold shadow-lg flex items-center gap-1.5">
+                        <i data-lucide="gem" class="w-3 h-3 text-blue-400"></i>
+                        <span>🔷 DELUXE SERIES (LIMIT ${p.stock || p.initial_stock || 12})</span>
                     </span>
                 `;
             } else {
                 editionBadge = `
-                    <span class="badge-one-of-one shadow-lg">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span>1-OF-1 GLOBAL EDITION</span>
+                    <span class="bg-stone-900 text-amber-200 border border-stone-700 text-[10px] font-mono px-2.5 py-1 rounded-full uppercase tracking-wider font-bold shadow-lg flex items-center gap-1.5">
+                        <i data-lucide="box" class="w-3 h-3 text-amber-300"></i>
+                        <span>⬜ REGULER SERIES (LIMIT ${p.stock || p.initial_stock || 24})</span>
                     </span>
                 `;
             }
@@ -463,19 +510,17 @@ const KuroApp = {
             let statusBadge = '';
             if (isAcquired) {
                 statusBadge = `<span class="bg-rose-950/80 text-rose-400 border border-rose-800/50 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider">HABIS / VAULTED</span>`;
-            } else if (isSeries24) {
-                statusBadge = `<span class="bg-amber-950/80 text-amber-300 border border-amber-600/50 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider">SISA ${p.stock}/24 BOTOL</span>`;
             } else if (isReserved) {
                 statusBadge = `<span class="bg-amber-950/80 text-amber-400 border border-amber-800/50 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider">RESERVED</span>`;
+            } else if (isLimited) {
+                statusBadge = `<span class="bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider">HANYA 1 UNIT</span>`;
             } else {
-                statusBadge = `<span class="bg-emerald-950/80 text-emerald-400 border border-emerald-800/50 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider">TERSEDIA</span>`;
+                statusBadge = `<span class="bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider">SISA ${p.stock} UNIT</span>`;
             }
 
             // Price Display
             let priceDisplay = '';
-            if (isSeries24) {
-                priceDisplay = `<div class="font-serif-luxury text-xl md:text-2xl font-bold text-gold-gradient">${p.price_formatted}</div>`;
-            } else {
+            if (isLimited) {
                 priceDisplay = this.state.isWhitelisted 
                     ? `<div class="font-serif-luxury text-xl md:text-2xl font-bold text-gold-gradient">${p.price_formatted}</div>`
                     : `
@@ -485,33 +530,17 @@ const KuroApp = {
                             <span class="text-[10px] text-amber-400/90 font-mono tracking-widest">(KHUSUS WHITELIST)</span>
                         </div>
                     `;
+            } else {
+                priceDisplay = `<div class="font-serif-luxury text-xl md:text-2xl font-bold text-gold-gradient">${p.price_formatted}</div>`;
             }
 
             // Action Button
             let actionButton = '';
-            if (isSeries24) {
-                if (!this.state.currentUser) {
-                    actionButton = `
-                        <button onclick="KuroApp.openLoginModal('Silakan masuk ke akun Anda untuk berbelanja Kuro Series 24.')" class="btn-outline-gold w-full py-2.5 rounded-lg text-xs flex items-center justify-center gap-2">
-                            <i data-lucide="log-in" class="w-4 h-4 text-amber-400"></i>
-                            <span>MASUK UNTUK BELI</span>
-                        </button>
-                    `;
-                } else if (p.stock > 0) {
-                    actionButton = `
-                        <button onclick="KuroApp.addToCart(${p.id})" class="btn-gold w-full py-2.5 rounded-lg text-xs flex items-center justify-center gap-2">
-                            <i data-lucide="shopping-cart" class="w-4 h-4"></i>
-                            <span>+ KERANJANG</span>
-                        </button>
-                    `;
-                } else {
-                    actionButton = `<span class="text-stone-500 text-xs text-center border border-stone-800 p-2 rounded-lg">Stok Alokasi Habis</span>`;
-                }
-            } else {
-                // 1-of-1 flow
+            if (isLimited) {
+                // Limited Edition: VIP Whitelist Required
                 if (this.state.isWhitelisted) {
-                    actionButton = isAvailable 
-                        ? `<button onclick="KuroApp.openCheckout(${p.id})" class="btn-gold w-full py-2.5 rounded-lg text-xs flex items-center justify-center gap-2">
+                    actionButton = (!isAcquired && !isReserved)
+                        ? `<button onclick="KuroApp.openCheckout(${p.id})" class="btn-gold w-full py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 font-bold shadow-md">
                              <i data-lucide="gem" class="w-4 h-4"></i>
                              <span>AKUISISI 1-OF-1</span>
                            </button>`
@@ -521,16 +550,35 @@ const KuroApp = {
                            </button>`;
                 } else {
                     actionButton = `
-                        <button onclick="KuroApp.openWhitelistModal('invite')" class="btn-outline-gold w-full py-2.5 rounded-lg text-xs flex items-center justify-center gap-2">
+                        <a href="whitelist.php" class="btn-outline-gold w-full py-2.5 rounded-lg text-xs flex items-center justify-center gap-2">
                             <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>
                             <span>BUKA AKSES VIP</span>
+                        </a>
+                    `;
+                }
+            } else {
+                // Premium, Deluxe, Reguler: available for all logged-in members to add to cart
+                if (!this.state.currentUser) {
+                    actionButton = `
+                        <button onclick="KuroApp.openLoginModal('Silakan masuk ke akun Anda untuk membeli karya ini.')" class="btn-outline-gold w-full py-2.5 rounded-lg text-xs flex items-center justify-center gap-2">
+                            <i data-lucide="log-in" class="w-4 h-4 text-amber-400"></i>
+                            <span>MASUK UNTUK BELI</span>
                         </button>
                     `;
+                } else if (p.stock > 0 && isAvailable) {
+                    actionButton = `
+                        <button onclick="KuroApp.addToCart(${p.id})" class="btn-gold w-full py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 font-bold shadow-md">
+                            <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                            <span>+ KERANJANG</span>
+                        </button>
+                    `;
+                } else {
+                    actionButton = `<span class="text-stone-500 text-xs text-center border border-stone-800 p-2 rounded-lg block">Alokasi Stok Habis</span>`;
                 }
             }
 
             return `
-                <div class="glass-kuro-card rounded-2xl overflow-hidden flex flex-col group ${isSeries24 ? 'border-amber-500/30' : ''}">
+                <div class="glass-kuro-card rounded-2xl overflow-hidden flex flex-col group ${isLimited ? 'border-amber-500/40 shadow-xl' : 'border-stone-800'}">
                     <!-- Media Showcase -->
                     <div class="relative overflow-hidden aspect-[4/3] bg-stone-950">
                         <img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out">
@@ -543,7 +591,7 @@ const KuroApp = {
 
                         <div class="absolute bottom-3 left-4">
                             <span class="font-mono text-[11px] text-amber-200/80 bg-black/60 px-2 py-0.5 rounded border border-amber-500/20">
-                                ${p.edition_serial}
+                                ${p.edition_serial || p.series_category || ''}
                             </span>
                         </div>
                     </div>
@@ -552,12 +600,12 @@ const KuroApp = {
                     <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
                         <div>
                             <div class="flex items-baseline justify-between mb-1">
-                                <span class="font-kanji text-amber-400/80 text-sm tracking-widest">${p.japanese_name}</span>
-                                <span class="text-[11px] text-stone-400 uppercase tracking-widest font-mono">${p.volume_ml}ML • ${p.concentration.split(' ')[0]}</span>
+                                <span class="font-kanji text-amber-400/80 text-sm tracking-widest">${p.japanese_name || ''}</span>
+                                <span class="text-[11px] text-stone-400 uppercase tracking-widest font-mono">${p.volume_ml}ML • ${(p.concentration || '').split(' ')[0]}</span>
                             </div>
                             <h3 class="font-serif-luxury text-xl font-bold text-white group-hover:text-amber-200 transition-colors">${p.name}</h3>
-                            <p class="text-xs text-amber-200/60 font-editorial italic mb-2">${p.subtitle}</p>
-                            <p class="text-stone-300 text-xs line-clamp-3 leading-relaxed font-light">${p.description}</p>
+                            <p class="text-xs text-amber-200/60 font-editorial italic mb-2">${p.subtitle || ''}</p>
+                            <p class="text-stone-300 text-xs line-clamp-3 leading-relaxed font-light">${p.description || ''}</p>
                         </div>
 
                         <!-- Notes Preview -->
@@ -1735,6 +1783,7 @@ const KuroApp = {
             this.loadAdminStats(),
             this.loadAdminOrders(),
             this.loadAdminProducts(),
+            this.loadAdminAuctions(),
             this.loadAdminApplicants(),
             this.loadAdminInviteCodes()
         ]);
@@ -1745,7 +1794,7 @@ const KuroApp = {
         this.state.adminActiveTab = tabName;
         this.playZenChime('chime');
 
-        const tabs = ['orders', 'products', 'whitelist', 'invites'];
+        const tabs = ['orders', 'products', 'auction', 'whitelist', 'invites'];
         tabs.forEach(t => {
             const btn = document.getElementById(`admin-tab-btn-${t}`);
             const pane = document.getElementById(`admin-panel-${t}`) || document.getElementById(`admin-tab-pane-${t}`);
@@ -1762,6 +1811,7 @@ const KuroApp = {
 
         if (tabName === 'orders') this.loadAdminOrders();
         else if (tabName === 'products') this.loadAdminProducts();
+        else if (tabName === 'auction') this.loadAdminAuctions();
         else if (tabName === 'whitelist') this.loadAdminApplicants();
         else if (tabName === 'invites') this.loadAdminInviteCodes();
 
@@ -2244,10 +2294,25 @@ const KuroApp = {
             }
 
             container.innerHTML = products.map(p => {
-                const isSeries24 = (p.edition_type === 'Series-24');
-                const badgeEdition = isSeries24 
-                    ? 'bg-amber-950/80 text-amber-300 border-amber-500/50' 
-                    : (p.edition_type === '1-of-1' ? 'bg-stone-900 text-gold-gradient border-gold-subtle' : 'bg-stone-900 text-stone-300 border-stone-700');
+                let badgeCategory = 'bg-stone-900 text-stone-300 border-stone-700';
+                let categoryLabel = p.series_category || p.edition_type;
+
+                if (p.is_auction) {
+                    badgeCategory = 'bg-purple-950/80 text-purple-300 border-purple-500/60 font-bold';
+                    categoryLabel = `⚖️ LELANG (${(p.auction_status || 'upcoming').toUpperCase()})`;
+                } else if (p.series_category === 'Limited Edition' || p.edition_type === '1-of-1' || p.stock === 1) {
+                    badgeCategory = 'bg-red-950/80 text-amber-300 border-red-500/50 font-bold';
+                    categoryLabel = '⭐ Limited Edition (1-of-1)';
+                } else if (p.series_category === 'Premium Series' || p.stock <= 8) {
+                    badgeCategory = 'bg-amber-950/80 text-amber-300 border-amber-500/50 font-bold';
+                    categoryLabel = '🔶 Premium Series (Limit 8)';
+                } else if (p.series_category === 'Deluxe Series' || p.stock <= 12) {
+                    badgeCategory = 'bg-blue-950/80 text-blue-300 border-blue-500/50 font-bold';
+                    categoryLabel = '🔷 Deluxe Series (Limit 12)';
+                } else {
+                    badgeCategory = 'bg-stone-900 text-amber-200 border-stone-700';
+                    categoryLabel = '⬜ Reguler Series (Limit 24)';
+                }
 
                 let statusBadge = 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50';
                 let statusLabel = 'Tersedia';
@@ -2267,7 +2332,7 @@ const KuroApp = {
                                 <div class="flex flex-wrap items-center gap-2">
                                     <h4 class="font-serif-luxury text-sm sm:text-base font-bold text-white truncate">${p.name}</h4>
                                     <span class="text-xs font-kanji text-amber-400/80">${p.japanese_name || ''}</span>
-                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${badgeEdition}">${p.edition_type}</span>
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${badgeCategory}">${categoryLabel}</span>
                                     <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${statusBadge}">${statusLabel}</span>
                                 </div>
                                 <div class="text-xs text-stone-400 font-light truncate">${p.subtitle || ''}</div>
@@ -2319,6 +2384,12 @@ const KuroApp = {
         const titleEl = document.getElementById('admin-product-modal-title');
         if (!modal) return;
 
+        // Reset auction section
+        const isAuctionCb = document.getElementById('admin-prod-is-auction');
+        const auctionSection = document.getElementById('admin-prod-auction-section');
+        if (isAuctionCb) isAuctionCb.checked = false;
+        if (auctionSection) auctionSection.classList.add('hidden');
+
         if (productId === 0) {
             // New Product
             if (titleEl) titleEl.textContent = 'TAMBAH KARYA PARFUM BARU';
@@ -2326,8 +2397,7 @@ const KuroApp = {
             document.getElementById('admin-prod-name').value = '';
             document.getElementById('admin-prod-kanji').value = '';
             document.getElementById('admin-prod-subtitle').value = '';
-            document.getElementById('admin-prod-edition-type').value = 'Series-24';
-            document.getElementById('admin-prod-serial').value = 'Series 24 Edition (Limit 24 Botol)';
+            document.getElementById('admin-prod-serial').value = '';
             document.getElementById('admin-prod-price').value = '4850000';
             document.getElementById('admin-prod-stock').value = '24';
             document.getElementById('admin-prod-volume').value = '50';
@@ -2335,11 +2405,13 @@ const KuroApp = {
             document.getElementById('admin-prod-status').value = 'available';
             document.getElementById('admin-prod-image').value = 'assets/images/kuro_kyara_oud.jpg';
             document.getElementById('admin-prod-desc').value = '';
-            document.getElementById('admin-prod-philosophy').value = '';
+            const philosophyEl = document.getElementById('admin-prod-philosophy');
+            if (philosophyEl) philosophyEl.value = '';
             document.getElementById('admin-prod-craftsmanship').value = '';
             document.getElementById('admin-prod-top-notes').value = '';
             document.getElementById('admin-prod-heart-notes').value = '';
             document.getElementById('admin-prod-base-notes').value = '';
+            this.previewSeriesCategory(24);
         } else {
             // Edit Product
             const p = this.state.adminProducts.find(item => item.id == productId);
@@ -2350,25 +2422,40 @@ const KuroApp = {
             document.getElementById('admin-prod-name').value = p.name || '';
             document.getElementById('admin-prod-kanji').value = p.japanese_name || '';
             document.getElementById('admin-prod-subtitle').value = p.subtitle || '';
-            document.getElementById('admin-prod-edition-type').value = p.edition_type || 'Series-24';
             document.getElementById('admin-prod-serial').value = p.edition_serial || '';
             document.getElementById('admin-prod-price').value = p.price_raw || p.price || '';
             document.getElementById('admin-prod-stock').value = p.stock || 0;
             document.getElementById('admin-prod-volume').value = p.volume_ml || 50;
             document.getElementById('admin-prod-concentration').value = p.concentration || '';
             document.getElementById('admin-prod-status').value = p.status || 'available';
-            document.getElementById('admin-prod-image').value = p.image_url || 'assets/images/kuro_series24_noir.jpg';
+            document.getElementById('admin-prod-image').value = p.image_url || 'assets/images/kuro_default.jpg';
             document.getElementById('admin-prod-desc').value = p.description || '';
-            document.getElementById('admin-prod-philosophy').value = p.philosophy || '';
+            const philosophyEl = document.getElementById('admin-prod-philosophy');
+            if (philosophyEl) philosophyEl.value = p.philosophy || '';
             document.getElementById('admin-prod-craftsmanship').value = p.flacon_craftsmanship || '';
+            this.previewSeriesCategory(p.stock || 24);
+
+            // Auction fields
+            if (p.is_auction) {
+                if (isAuctionCb) isAuctionCb.checked = true;
+                if (auctionSection) auctionSection.classList.remove('hidden');
+                const startEl = document.getElementById('admin-prod-auction-start');
+                const incEl   = document.getElementById('admin-prod-auction-increment');
+                const statEl  = document.getElementById('admin-prod-auction-status');
+                const endEl   = document.getElementById('admin-prod-auction-end');
+                if (startEl) startEl.value = p.auction_start_price || '';
+                if (incEl)   incEl.value   = p.auction_increment || '';
+                if (statEl)  statEl.value  = p.auction_status || 'upcoming';
+                if (endEl)   endEl.value   = p.auction_end_time ? p.auction_end_time.replace(' ', 'T') : '';
+            }
 
             // Extract notes
-            const topStr = (p.notes?.top || []).map(n => n.note_name).join(', ');
+            const topStr   = (p.notes?.top   || []).map(n => n.note_name).join(', ');
             const heartStr = (p.notes?.heart || []).map(n => n.note_name).join(', ');
-            const baseStr = (p.notes?.base || []).map(n => n.note_name).join(', ');
-            document.getElementById('admin-prod-top-notes').value = topStr;
+            const baseStr  = (p.notes?.base  || []).map(n => n.note_name).join(', ');
+            document.getElementById('admin-prod-top-notes').value   = topStr;
             document.getElementById('admin-prod-heart-notes').value = heartStr;
-            document.getElementById('admin-prod-base-notes').value = baseStr;
+            document.getElementById('admin-prod-base-notes').value  = baseStr;
         }
 
         modal.classList.remove('hidden');
@@ -2381,21 +2468,31 @@ const KuroApp = {
         if (modal) modal.classList.add('hidden');
     },
 
-    onEditionTypeChange: function() {
-        const type = document.getElementById('admin-prod-edition-type')?.value;
-        const stockInput = document.getElementById('admin-prod-stock');
-        const serialInput = document.getElementById('admin-prod-serial');
+    // ── Series category preview (called from stock input oninput) ──
+    previewSeriesCategory: function(stock) {
+        const el = document.getElementById('admin-prod-series-preview');
+        if (!el) return;
+        const s = parseInt(stock) || 0;
+        let label, color;
+        if (s === 1)      { label = '⭐ Limited Edition (1 unit — Whitelist only)'; color = 'text-red-400'; }
+        else if (s <= 8)  { label = '🔶 Premium Series (' + s + ' unit)'; color = 'text-orange-400'; }
+        else if (s <= 12) { label = '🔷 Deluxe Series (' + s + ' unit)'; color = 'text-blue-400'; }
+        else              { label = '⬜ Reguler Series (' + s + ' unit)'; color = 'text-amber-300'; }
+        el.textContent = label;
+        el.className = 'w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-xs font-mono ' + color;
+    },
 
-        if (type === 'Series-24') {
-            if (stockInput) stockInput.value = '24';
-            if (serialInput) serialInput.value = 'Series 24 Edition (Limit 24 Botol)';
-        } else if (type === '1-of-1') {
-            if (stockInput) stockInput.value = '1';
-            if (serialInput) serialInput.value = '#KURO-00' + Math.floor(Math.random() * 90 + 10) + '/01 (1 of 1 Global Edition)';
-        } else {
-            if (stockInput) stockInput.value = '5';
-            if (serialInput) serialInput.value = 'Limited Reserve Atelier Edition';
+    // ── Toggle auction configuration section ──
+    toggleAuctionSection: function(checked) {
+        const section = document.getElementById('admin-prod-auction-section');
+        if (section) {
+            if (checked) section.classList.remove('hidden');
+            else section.classList.add('hidden');
         }
+    },
+
+    onEditionTypeChange: function() {
+        // Legacy – no longer called, kept for backward compat
     },
 
     selectImagePreset: function(url) {
@@ -2408,24 +2505,30 @@ const KuroApp = {
 
     submitProductModal: async function(e) {
         if (e) e.preventDefault();
-        const id = parseInt(document.getElementById('admin-prod-id').value) || 0;
-        const name = document.getElementById('admin-prod-name').value.trim();
-        const kanji = document.getElementById('admin-prod-kanji').value.trim();
-        const subtitle = document.getElementById('admin-prod-subtitle').value.trim();
-        const editionType = document.getElementById('admin-prod-edition-type').value;
-        const serial = document.getElementById('admin-prod-serial').value.trim();
-        const price = parseFloat(document.getElementById('admin-prod-price').value) || 0;
-        const stock = parseInt(document.getElementById('admin-prod-stock').value) || 0;
-        const volume = parseInt(document.getElementById('admin-prod-volume').value) || 50;
+        const id           = parseInt(document.getElementById('admin-prod-id').value) || 0;
+        const name         = document.getElementById('admin-prod-name').value.trim();
+        const kanji        = document.getElementById('admin-prod-kanji').value.trim();
+        const subtitle     = document.getElementById('admin-prod-subtitle').value.trim();
+        const serial       = document.getElementById('admin-prod-serial')?.value.trim() || '';
+        const price        = parseFloat(document.getElementById('admin-prod-price').value) || 0;
+        const stock        = parseInt(document.getElementById('admin-prod-stock').value) || 1;
+        const volume       = parseInt(document.getElementById('admin-prod-volume').value) || 50;
         const concentration = document.getElementById('admin-prod-concentration').value.trim();
-        const status = document.getElementById('admin-prod-status').value;
-        const image = document.getElementById('admin-prod-image').value.trim();
-        const desc = document.getElementById('admin-prod-desc').value.trim();
-        const philosophy = document.getElementById('admin-prod-philosophy').value.trim();
+        const status       = document.getElementById('admin-prod-status').value;
+        const image        = document.getElementById('admin-prod-image').value.trim();
+        const desc         = document.getElementById('admin-prod-desc').value.trim();
+        const philosophy   = document.getElementById('admin-prod-philosophy')?.value.trim() || '';
         const craftsmanship = document.getElementById('admin-prod-craftsmanship').value.trim();
-        const topNotes = document.getElementById('admin-prod-top-notes').value.trim();
-        const heartNotes = document.getElementById('admin-prod-heart-notes').value.trim();
-        const baseNotes = document.getElementById('admin-prod-base-notes').value.trim();
+        const topNotes     = document.getElementById('admin-prod-top-notes').value.trim();
+        const heartNotes   = document.getElementById('admin-prod-heart-notes').value.trim();
+        const baseNotes    = document.getElementById('admin-prod-base-notes').value.trim();
+
+        // Auction fields
+        const isAuction       = document.getElementById('admin-prod-is-auction')?.checked ? 1 : 0;
+        const auctionStart    = parseFloat(document.getElementById('admin-prod-auction-start')?.value) || null;
+        const auctionInc      = parseFloat(document.getElementById('admin-prod-auction-increment')?.value) || null;
+        const auctionStatus   = document.getElementById('admin-prod-auction-status')?.value || null;
+        const auctionEnd      = document.getElementById('admin-prod-auction-end')?.value || null;
 
         if (!name || price <= 0 || !desc) {
             this.showToast('Nama, deskripsi, dan harga produk wajib diisi.', 'error');
@@ -2433,24 +2536,18 @@ const KuroApp = {
         }
 
         const payload = {
-            id: id,
-            name: name,
-            japanese_name: kanji,
-            subtitle: subtitle,
-            edition_type: editionType,
-            edition_serial: serial,
-            price: price,
-            stock: stock,
-            volume_ml: volume,
-            concentration: concentration,
-            status: status,
-            image_url: image,
-            description: desc,
-            philosophy: philosophy,
-            flacon_craftsmanship: craftsmanship,
-            top_notes: topNotes ? topNotes.split(',').map(s => s.trim()).filter(Boolean) : [],
+            id, name, japanese_name: kanji, subtitle,
+            edition_serial: serial, price, stock,
+            volume_ml: volume, concentration, status, image_url: image,
+            description: desc, philosophy, flacon_craftsmanship: craftsmanship,
+            top_notes:   topNotes   ? topNotes.split(',').map(s => s.trim()).filter(Boolean) : [],
             heart_notes: heartNotes ? heartNotes.split(',').map(s => s.trim()).filter(Boolean) : [],
-            base_notes: baseNotes ? baseNotes.split(',').map(s => s.trim()).filter(Boolean) : []
+            base_notes:  baseNotes  ? baseNotes.split(',').map(s => s.trim()).filter(Boolean) : [],
+            is_auction: isAuction,
+            auction_start_price: auctionStart,
+            auction_increment: auctionInc,
+            auction_status: auctionStatus,
+            auction_end_time: auctionEnd ? auctionEnd.replace('T', ' ') : null,
         };
 
         const action = (id > 0) ? 'update' : 'create';
@@ -2466,13 +2563,13 @@ const KuroApp = {
                 this.closeProductModal();
                 this.showToast(data.message, 'success');
                 await this.loadAdminProducts();
-                await this.loadProducts(); // Update public showroom catalog
+                await this.loadProducts();
                 await this.loadAdminStats();
             } else {
                 this.showToast(data.message, 'error');
             }
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            console.error(err);
             this.showToast('Gagal menyimpan produk.', 'error');
         }
     },
@@ -2704,9 +2801,506 @@ const KuroApp = {
                 this.closeCartCheckout();
                 this.closeOrderSummary();
                 this.closeLoginModal();
+                this.closeProductModal();
+                this.closeOrderModal && this.closeOrderModal();
+                this.closeBidHistoryModal && this.closeBidHistoryModal();
             }
         });
-    }
+    },
+
+    // ── Auction Management (Admin) ──────────────────────────────────
+    loadAdminAuctions: async function() {
+        const container = document.getElementById('admin-auction-list');
+        if (!container) return;
+        container.innerHTML = `<div class="glass-kuro p-8 text-center rounded-2xl border border-stone-800">
+            <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-amber-400 mx-auto mb-2"></i>
+            <p class="text-xs text-stone-400">Memuat data lelang...</p></div>`;
+        if (window.lucide) lucide.createIcons();
+
+        try {
+            const res  = await fetch('api/auction.php?action=list');
+            const data = await res.json();
+
+            if (!data.success || !data.data.auctions?.length) {
+                container.innerHTML = `<div class="glass-kuro p-10 text-center rounded-2xl border border-stone-800 space-y-2">
+                    <i data-lucide="gavel" class="w-8 h-8 text-stone-600 mx-auto"></i>
+                    <p class="text-sm text-stone-400">Belum ada produk lelang.</p>
+                    <p class="text-xs text-stone-500">Tambah produk baru dan centang opsi "Produk Lelang" untuk membuat lelang.</p>
+                    </div>`;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            const statusBadge = (s) => ({
+                upcoming: '<span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-mono">UPCOMING</span>',
+                open:     '<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">OPEN</span>',
+                closed:   '<span class="px-2 py-0.5 rounded-full bg-stone-700 text-stone-300 text-[10px] font-mono">CLOSED</span>',
+                cancelled:'<span class="px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 text-[10px] font-mono">CANCELLED</span>',
+            }[s] || s);
+
+            container.innerHTML = data.data.auctions.map(a => `
+                <div class="glass-kuro p-5 rounded-2xl border ${a.auction_status === 'open' ? 'border-amber-500/40' : 'border-stone-800'} space-y-3">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">${statusBadge(a.auction_status)}
+                                <span class="text-[10px] font-mono text-stone-500">ID: ${this.escapeHtml(String(a.id))}</span>
+                            </div>
+                            <h4 class="font-serif-luxury text-sm font-bold text-white">${this.escapeHtml(a.name)}</h4>
+                            <p class="text-xs text-stone-400">${this.escapeHtml(a.subtitle || '')}</p>
+                        </div>
+                        <div class="text-right space-y-1 shrink-0">
+                            <div class="text-xs text-amber-300 font-mono">Harga Awal: ${a.auction_start_price ? 'Rp ' + parseInt(a.auction_start_price).toLocaleString('id') : '—'}</div>
+                            <div class="text-xs text-white font-mono">Bid Tertinggi: ${a.current_bid_fmt || '—'}</div>
+                            <div class="text-[10px] text-stone-500">${a.total_bids || 0} bid masuk</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        ${a.auction_status !== 'open' ? `<button onclick="KuroApp.openAuction(${a.id})" class="btn-gold px-3 py-1.5 rounded-lg text-[10px] font-bold">BUKA LELANG</button>` : ''}
+                        ${a.auction_status === 'open' ? `<button onclick="KuroApp.closeAuction(${a.id})" class="px-3 py-1.5 rounded-lg text-[10px] font-bold border border-red-500/50 text-red-400 hover:bg-red-950/30">TUTUP LELANG</button>` : ''}
+                        <button onclick="KuroApp.viewAuctionBids(${a.id})" class="btn-outline-gold px-3 py-1.5 rounded-lg text-[10px]">LIHAT SEMUA BID</button>
+                    </div>
+                    ${a.auction_winner_id ? `<div class="text-xs text-emerald-400 font-mono bg-emerald-950/20 px-3 py-1.5 rounded-lg border border-emerald-500/20">🏆 Pemenang: User #${a.auction_winner_id} — ${a.auction_winning_bid ? 'Rp '+parseInt(a.auction_winning_bid).toLocaleString('id') : ''}</div>` : ''}
+                </div>
+            `).join('');
+        } catch (err) {
+            container.innerHTML = `<div class="glass-kuro p-8 text-center rounded-2xl border border-red-500/30 text-red-400 text-xs">Gagal memuat data lelang.</div>`;
+        }
+        if (window.lucide) lucide.createIcons();
+    },
+
+    openAuction: async function(productId) {
+        if (!confirm('Buka lelang ini? Status akan diubah ke OPEN dan peserta bisa bid.')) return;
+        try {
+            const res = await fetch('api/auction.php?action=admin_set_auction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId, auction_status: 'open', is_auction: 1 })
+            });
+            const data = await res.json();
+            this.showToast(data.message, data.success ? 'success' : 'error');
+            await this.loadAdminAuctions();
+        } catch(e) { this.showToast('Gagal membuka lelang.', 'error'); }
+    },
+
+    closeAuction: async function(productId) {
+        if (!confirm('Tutup lelang ini sekarang? Pemenang akan ditentukan otomatis dari bid tertinggi.')) return;
+        try {
+            const res = await fetch('api/auction.php?action=admin_close_auction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                const d = data.data;
+                this.showToast(`Lelang ditutup! Pemenang: ${d.winner_name || 'Tidak ada'} — ${d.winning_bid_fmt || '—'}`, 'success');
+                await this.loadAdminAuctions();
+            } else {
+                this.showToast(data.message, 'error');
+            }
+        } catch(e) { this.showToast('Gagal menutup lelang.', 'error'); }
+    },
+
+    viewAuctionBids: async function(productId) {
+        try {
+            const res  = await fetch(`api/auction.php?action=admin_bids&product_id=${productId}`);
+            const data = await res.json();
+            if (data.success) {
+                const bids = data.data.bids;
+                if (!bids.length) { this.showToast('Belum ada bid untuk lelang ini.', 'info'); return; }
+                const list = bids.slice(0, 5).map((b, i) =>
+                    `#${i+1} ${b.bidder_name} — ${b.bid_amount_fmt}`
+                ).join('\n');
+                alert('TOP BIDS:\n\n' + list);
+            }
+        } catch(e) { this.showToast('Gagal memuat bid.', 'error'); }
+    },
+
+    grantAuctionAccess: async function() {
+        const userId    = parseInt(document.getElementById('auction-grant-user-id')?.value) || 0;
+        const productId = parseInt(document.getElementById('auction-grant-product-id')?.value) || 0;
+        if (!userId || !productId) {
+            this.showToast('Isi User ID dan ID Produk Lelang.', 'error');
+            return;
+        }
+        try {
+            const res = await fetch('api/auction.php?action=admin_grant_access', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, product_id: productId })
+            });
+            const data = await res.json();
+            this.showToast(data.message, data.success ? 'success' : 'error');
+        } catch(e) { this.showToast('Gagal memberikan akses.', 'error'); }
+    },
+
+    // ----------------------------------------------------
+    // Public Auction Page (lelang.php)
+    // ----------------------------------------------------
+    loadAuctionsPage: async function() {
+        const container = document.getElementById('auction-grid');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="col-span-full py-16 text-center text-stone-500 space-y-3">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-amber-400 mx-auto"></i>
+                <p class="font-serif-luxury text-sm tracking-wider">Membuka Meja Lelang Kuro Ginza...</p>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+
+        try {
+            const res = await fetch('api/auction.php?action=list');
+            const data = await res.json();
+
+            if (!data.success || !data.data.auctions || data.data.auctions.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full glass-kuro p-16 text-center rounded-2xl border border-stone-800 space-y-4">
+                        <div class="w-16 h-16 mx-auto rounded-full bg-stone-900 border border-stone-800 flex items-center justify-center text-amber-400/60">
+                            <i data-lucide="gavel" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="font-serif-luxury text-lg font-bold text-white">Belum Ada Sesi Lelang Aktif</h3>
+                        <p class="text-xs text-stone-400 max-w-md mx-auto leading-relaxed">
+                            Kuro Master sedang mempersiapkan karya wewangian 1-of-1 langka berikutnya untuk dilelang di Tokyo Ginza. Silakan pantau berkala.
+                        </p>
+                        <a href="koleksi.php" class="btn-gold inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold">
+                            <span>Jelajahi Koleksi Standar</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            this.state.auctionsList = data.data.auctions;
+            this.renderAuctionsGrid();
+        } catch (e) {
+            console.error('Failed to load auction page', e);
+            container.innerHTML = `<div class="col-span-full text-center py-12 text-rose-400 text-xs">Gagal memuat sesi lelang. Silakan coba lagi.</div>`;
+        }
+    },
+
+    filterAuctionStatus: function(status) {
+        this.playZenChime('chime');
+        this.state.auctionFilter = status;
+
+        ['all', 'open', 'upcoming', 'closed'].forEach(s => {
+            const btn = document.getElementById(`auc-filter-${s}`);
+            if (btn) {
+                if (s === status) {
+                    btn.className = 'px-4 py-2 rounded-xl text-xs font-serif-luxury font-bold border border-amber-400 bg-amber-500/20 text-amber-300 transition-all shadow-md';
+                } else {
+                    btn.className = 'px-4 py-2 rounded-xl text-xs font-serif-luxury border border-stone-800 bg-stone-900 text-stone-400 hover:text-white hover:border-stone-700 transition-all';
+                }
+            }
+        });
+
+        this.renderAuctionsGrid();
+    },
+
+    renderAuctionsGrid: function() {
+        const container = document.getElementById('auction-grid');
+        if (!container) return;
+
+        let items = this.state.auctionsList || [];
+        const filter = this.state.auctionFilter;
+        if (filter && filter !== 'all') {
+            items = items.filter(a => a.auction_status === filter);
+        }
+
+        if (items.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full py-16 text-center text-stone-500 space-y-2">
+                    <p class="font-serif-luxury text-sm">Tidak ada karya lelang dengan status "${filter.toUpperCase()}".</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = items.map(a => {
+            const isOpen = (a.auction_status === 'open');
+            const isUpcoming = (a.auction_status === 'upcoming');
+            const isClosed = (a.auction_status === 'closed');
+            const canBid = Boolean(a.can_bid);
+            const currentBidVal = a.current_bid ? parseFloat(a.current_bid) : parseFloat(a.auction_start_price);
+            const incVal = parseFloat(a.auction_increment) || 1000000;
+            const nextMinVal = a.next_minimum_bid || (currentBidVal + incVal);
+
+            let statusBadgeHtml = '';
+            if (isOpen) {
+                statusBadgeHtml = `
+                    <span class="bg-emerald-950/90 text-emerald-300 border border-emerald-500/60 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider font-bold shadow-lg flex items-center gap-1.5 animate-pulse">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span>🟢 LIVE BIDDING (OPEN)</span>
+                    </span>
+                `;
+            } else if (isUpcoming) {
+                statusBadgeHtml = `
+                    <span class="bg-blue-950/90 text-blue-300 border border-blue-500/50 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider font-bold shadow-lg flex items-center gap-1.5">
+                        <i data-lucide="clock" class="w-3 h-3 text-blue-400"></i>
+                        <span>🔵 SEGERA DIMULAI</span>
+                    </span>
+                `;
+            } else {
+                statusBadgeHtml = `
+                    <span class="bg-stone-900 text-stone-400 border border-stone-700 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider font-bold shadow-lg flex items-center gap-1.5">
+                        <span>⚪ LELANG SELESAI</span>
+                    </span>
+                `;
+            }
+
+            // Quick preset amounts
+            const preset1 = nextMinVal;
+            const preset2 = nextMinVal + incVal;
+            const preset3 = nextMinVal + (incVal * 2);
+
+            return `
+                <div class="glass-kuro-card rounded-2xl overflow-hidden flex flex-col border ${isOpen ? 'border-amber-500/50 ring-1 ring-amber-500/20 shadow-2xl' : 'border-stone-800'}">
+                    <!-- Top Showcase Image -->
+                    <div class="relative overflow-hidden aspect-[16/9] sm:aspect-[2/1] bg-stone-950">
+                        <img src="${a.image_url || 'assets/images/kuro_kyara_oud.jpg'}" alt="${this.escapeHtml(a.name)}" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#070708] via-transparent to-transparent opacity-90"></div>
+
+                        <!-- Top Status & Serial -->
+                        <div class="absolute top-4 left-4 right-4 flex items-center justify-between gap-2">
+                            ${statusBadgeHtml}
+                            <span class="text-[10px] font-mono bg-black/70 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30">
+                                ${this.escapeHtml(a.edition_serial || '1-of-1 Bespoke')}
+                            </span>
+                        </div>
+
+                        <!-- Bottom Title Overlay -->
+                        <div class="absolute bottom-3 left-4 right-4">
+                            <span class="font-kanji text-amber-400/90 text-sm tracking-widest block">${this.escapeHtml(a.japanese_name || '')}</span>
+                            <h3 class="font-serif-luxury text-xl sm:text-2xl font-bold text-white drop-shadow-md truncate">${this.escapeHtml(a.name)}</h3>
+                        </div>
+                    </div>
+
+                    <!-- Auction Details & Bidding Console -->
+                    <div class="p-6 flex-1 flex flex-col justify-between space-y-6">
+                        <!-- Description & Subtitle -->
+                        <div class="space-y-2">
+                            <p class="text-xs text-amber-200/80 font-editorial italic">${this.escapeHtml(a.subtitle || '')}</p>
+                            <p class="text-stone-300 text-xs line-clamp-2 leading-relaxed font-light">${this.escapeHtml(a.description || '')}</p>
+                        </div>
+
+                        <!-- Price Ladder Dashboard -->
+                        <div class="grid grid-cols-2 gap-3 bg-stone-950/80 border border-stone-800 p-4 rounded-xl">
+                            <div>
+                                <span class="text-[10px] font-mono text-stone-400 uppercase tracking-wider block">HARGA PEMBUKA (START)</span>
+                                <div class="font-serif-luxury text-sm sm:text-base text-stone-300">${a.price_formatted}</div>
+                                <span class="text-[10px] font-mono text-stone-500">Kenaikan: +${a.increment_fmt || 'Rp 1.000.000'}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] font-mono ${isOpen ? 'text-emerald-400 font-bold' : 'text-stone-400'} uppercase tracking-wider block">
+                                    ${isOpen ? '🔥 BID TERTINGGI SAAT INI' : 'BID AKHIR'}
+                                </span>
+                                <div class="font-serif-luxury text-lg sm:text-xl font-bold ${isOpen ? 'text-gold-gradient' : 'text-stone-300'}">
+                                    ${a.current_bid_fmt || a.price_formatted}
+                                </div>
+                                <span class="text-[10px] font-mono text-amber-400">${a.total_bids || 0} tawaran masuk</span>
+                            </div>
+                        </div>
+
+                        <!-- End time / Winner info -->
+                        ${isClosed && a.auction_winning_bid ? `
+                            <div class="p-3 bg-amber-950/30 border border-amber-500/30 rounded-xl text-xs flex items-center justify-between text-amber-300">
+                                <span>🏆 Terlelang kepada Patron: <strong>#User ${a.auction_winner_id}</strong></span>
+                                <span class="font-mono font-bold">${a.current_bid_fmt}</span>
+                            </div>
+                        ` : ''}
+
+                        <!-- Action / Bidding Console -->
+                        <div class="space-y-3 pt-2 border-t border-stone-800/80">
+                            ${isOpen ? `
+                                ${canBid ? `
+                                    <!-- Live Bidding Input Console for Verified/Whitelisted Members -->
+                                    <div class="space-y-3 bg-stone-950 p-4 rounded-xl border border-amber-500/30">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="font-mono text-stone-400">Bid Minimum Berikutnya:</span>
+                                            <span class="font-mono text-amber-300 font-bold">${a.next_minimum_bid_fmt}</span>
+                                        </div>
+
+                                        <!-- Quick Preset Buttons -->
+                                        <div class="grid grid-cols-3 gap-1.5 text-[11px] font-mono">
+                                            <button onclick="KuroApp.quickSetBid(${a.id}, ${preset1})" class="px-2 py-1.5 rounded-lg bg-stone-900 border border-stone-800 hover:border-amber-400/60 text-stone-300 hover:text-white transition-all text-center">
+                                                Min (Rp ${(preset1/1000000).toFixed(1)}jt)
+                                            </button>
+                                            <button onclick="KuroApp.quickSetBid(${a.id}, ${preset2})" class="px-2 py-1.5 rounded-lg bg-stone-900 border border-stone-800 hover:border-amber-400/60 text-stone-300 hover:text-white transition-all text-center">
+                                                +1x (Rp ${(preset2/1000000).toFixed(1)}jt)
+                                            </button>
+                                            <button onclick="KuroApp.quickSetBid(${a.id}, ${preset3})" class="px-2 py-1.5 rounded-lg bg-stone-900 border border-stone-800 hover:border-amber-400/60 text-stone-300 hover:text-white transition-all text-center">
+                                                +2x (Rp ${(preset3/1000000).toFixed(1)}jt)
+                                            </button>
+                                        </div>
+
+                                        <!-- Bid Form -->
+                                        <div class="flex items-center gap-2">
+                                            <div class="relative flex-1">
+                                                <span class="absolute left-3 top-2.5 text-xs font-mono text-stone-500">Rp</span>
+                                                <input type="number" id="bid-input-${a.id}" value="${nextMinVal}" min="${nextMinVal}" step="${incVal}"
+                                                    class="w-full bg-stone-900 border border-stone-800 focus:border-amber-400 rounded-xl pl-9 pr-3 py-2 text-xs font-mono text-white outline-none">
+                                            </div>
+                                            <button onclick="KuroApp.placeAuctionBid(${a.id})" class="btn-gold px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-lg flex items-center gap-1.5">
+                                                <i data-lucide="gavel" class="w-3.5 h-3.5"></i>
+                                                <span>AJUKAN BID</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ` : `
+                                    ${!this.state.currentUser ? `
+                                        <button onclick="KuroApp.openLoginModal('Masuk untuk menempatkan penawaran lelang ini.')" class="btn-gold w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg">
+                                            <i data-lucide="log-in" class="w-4 h-4"></i>
+                                            <span>MASUK UNTUK MENAWAR (BID)</span>
+                                        </button>
+                                    ` : `
+                                        <a href="whitelist.php" class="btn-outline-gold w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                                            <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>
+                                            <span>VERIFIKASI VIP UNTUK MENAWAR</span>
+                                        </a>
+                                    `}
+                                `}
+                            ` : ''}
+
+                            <!-- View Bid Ladder Button -->
+                            <button onclick="KuroApp.openBidHistoryModal(${a.id})" class="btn-outline-gold w-full py-2.5 rounded-xl text-xs flex items-center justify-center gap-2">
+                                <i data-lucide="history" class="w-3.5 h-3.5 text-amber-400"></i>
+                                <span>LIHAT LOG PENAWARAN (${a.total_bids || 0} BID)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (window.lucide) lucide.createIcons();
+    },
+
+    quickSetBid: function(productId, amount) {
+        const input = document.getElementById(`bid-input-${productId}`);
+        if (input) {
+            input.value = amount;
+            input.focus();
+            this.showToast('Nominal disesuaikan: Rp ' + parseInt(amount).toLocaleString('id'), 'info');
+        }
+    },
+
+    placeAuctionBid: async function(productId) {
+        const input = document.getElementById(`bid-input-${productId}`);
+        if (!input) return;
+
+        const amount = parseFloat(input.value);
+        if (!amount || amount <= 0) {
+            this.showToast('Masukkan nominal penawaran bid yang valid.', 'error');
+            return;
+        }
+
+        if (!confirm(`Konfirmasi penempatan tawaran lelang sebesar Rp ${parseInt(amount).toLocaleString('id')}?`)) {
+            return;
+        }
+
+        this.playZenChime('chime');
+
+        try {
+            const res = await fetch('api/auction.php?action=bid', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId, bid_amount: amount })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                this.playZenChime('bell');
+                this.showToast(data.message, 'success');
+                await this.loadAuctionsPage();
+            } else {
+                this.showToast(data.message || 'Penawaran bid gagal.', 'error');
+            }
+        } catch (e) {
+            console.error('Bid submission failed', e);
+            this.showToast('Terjadi kesalahan jaringan saat mengajukan bid.', 'error');
+        }
+    },
+
+    openBidHistoryModal: async function(productId) {
+        const modal = document.getElementById('auction-history-modal');
+        const titleEl = document.getElementById('auction-history-title');
+        const subtitleEl = document.getElementById('auction-history-subtitle');
+        const contentEl = document.getElementById('auction-history-content');
+        if (!modal || !contentEl) return;
+
+        contentEl.innerHTML = `
+            <div class="py-10 text-center text-stone-400 space-y-2">
+                <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-amber-400 mx-auto"></i>
+                <p class="text-xs font-mono">Memuat buku penawaran Ginza...</p>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+
+        try {
+            const res = await fetch(`api/auction.php?action=detail&id=${productId}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                contentEl.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${data.message}</div>`;
+                return;
+            }
+
+            const { auction, bids } = data.data;
+            if (titleEl) titleEl.textContent = `PENAWARAN: ${auction.name.toUpperCase()}`;
+            if (subtitleEl) subtitleEl.textContent = `${auction.subtitle || ''} • Mulai: ${auction.price_formatted}`;
+
+            if (!bids || bids.length === 0) {
+                contentEl.innerHTML = `
+                    <div class="p-8 text-center text-stone-500 space-y-2 border border-stone-800 rounded-xl">
+                        <i data-lucide="gavel" class="w-6 h-6 mx-auto text-stone-600"></i>
+                        <p class="text-xs">Belum ada tawaran masuk untuk karya ini.</p>
+                        <p class="text-[10px] text-stone-600">Jadilah kolektor pertama yang membuka penawaran!</p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            contentEl.innerHTML = bids.map((b, idx) => {
+                const isLeader = (idx === 0);
+                return `
+                    <div class="p-3.5 rounded-xl border ${isLeader ? 'bg-amber-950/30 border-amber-500/50 shadow-md' : 'bg-stone-950/70 border-stone-900'} flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full ${isLeader ? 'bg-amber-400 text-black font-bold' : 'bg-stone-900 text-stone-400 border border-stone-800'} text-xs font-mono flex items-center justify-center">
+                                ${idx + 1}
+                            </span>
+                            <div>
+                                <div class="text-xs font-bold ${isLeader ? 'text-amber-300' : 'text-white'} flex items-center gap-1.5">
+                                    <span>${this.escapeHtml(b.bidder_name || 'Patron Kuro')}</span>
+                                    ${b.is_mine ? '<span class="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded font-mono">ANDA</span>' : ''}
+                                    ${isLeader ? '<span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-400/30 px-1.5 py-0.2 rounded font-mono">HIGHEST</span>' : ''}
+                                </div>
+                                <span class="text-[10px] font-mono text-stone-500">${b.bid_at}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-serif-luxury font-bold text-sm ${isLeader ? 'text-gold-gradient text-base' : 'text-stone-300'}">
+                                ${b.bid_amount_fmt}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (window.lucide) lucide.createIcons();
+        } catch (e) {
+            console.error('Failed to load bid history', e);
+            contentEl.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">Gagal memuat log riwayat lelang.</div>`;
+        }
+    },
+
+    closeBidHistoryModal: function() {
+        const modal = document.getElementById('auction-history-modal');
+        if (modal) modal.classList.add('hidden');
+    },
 };
 
 document.addEventListener('DOMContentLoaded', () => {

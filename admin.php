@@ -109,8 +109,9 @@ require_once __DIR__ . '/includes/header.php';
             </button>
             <button id="admin-tab-btn-products" onclick="KuroApp.switchAdminTab('products')" class="px-5 py-3 rounded-t-xl text-stone-400 hover:text-white hover:bg-stone-900/50 flex items-center gap-2 transition-all">
                 <i data-lucide="flask-conical" class="w-4 h-4"></i>
-                <span>KATALOG PRODUK (CRUD)</span>
+                <span>KATALOG PRODUK</span>
             </button>
+            <button id="admin-tab-btn-auction" onclick="KuroApp.switchAdminTab('auction')" class="px-5 py-3 rounded-t-xl text-stone-400 hover:text-white hover:bg-stone-900/50 flex items-center gap-2 transition-all"><i data-lucide="gavel" class="w-4 h-4"></i><span>LELANG</span></button>
             <button id="admin-tab-btn-whitelist" onclick="KuroApp.switchAdminTab('whitelist')" class="px-5 py-3 rounded-t-xl text-stone-400 hover:text-white hover:bg-stone-900/50 flex items-center gap-2 transition-all">
                 <i data-lucide="scroll" class="w-4 h-4"></i>
                 <span>KURASI WHITELIST</span>
@@ -164,7 +165,7 @@ require_once __DIR__ . '/includes/header.php';
             <div class="glass-kuro p-4 rounded-xl border border-stone-800 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h3 class="font-serif-luxury text-sm font-bold text-white tracking-wider">MANAJEMEN INVENTARIS FLACON</h3>
-                    <p class="text-xs text-stone-400">Kelola katalog Series 24, Mahakarya 1-of-1, pembaruan stok, harga, dan formula olfaktori.</p>
+                    <p class="text-xs text-stone-400">Tambah produk baru — kategori (Limited/Premium/Deluxe/Reguler) otomatis ditentukan berdasarkan stok yang dimasukkan. Atur lelang dari tab Lelang.</p>
                 </div>
                 <button onclick="KuroApp.openProductModal()" class="btn-gold px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg">
                     <i data-lucide="plus-circle" class="w-4 h-4"></i>
@@ -243,6 +244,49 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </div>
 
+        <!-- ==============================================
+             PANEL TAB: AUCTION MANAGEMENT
+             ============================================== -->
+        <div id="admin-panel-auction" class="space-y-6 hidden">
+            <div class="glass-kuro p-4 rounded-xl border border-amber-500/30 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-serif-luxury text-sm font-bold text-white tracking-wider">MANAJEMEN LELANG EKSKLUSIF</h3>
+                    <p class="text-xs text-stone-400">Atur produk lelang, konfigurasi bid, buka/tutup lelang, dan kelola akses tiket kolektor.</p>
+                </div>
+            </div>
+
+            <!-- Auction products list -->
+            <div id="admin-auction-list" class="space-y-4">
+                <div class="glass-kuro p-12 text-center rounded-2xl border border-stone-800 space-y-3">
+                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-amber-400 mx-auto"></i>
+                    <p class="text-xs text-stone-400">Memuat data lelang...</p>
+                </div>
+            </div>
+
+            <!-- Grant Access Form -->
+            <div class="glass-kuro p-6 rounded-2xl border border-amber-500/20 space-y-4">
+                <div class="flex items-center gap-2 text-amber-400 text-xs font-serif-luxury font-bold tracking-wider">
+                    <i data-lucide="ticket" class="w-4 h-4"></i>
+                    <span>BERI AKSES TIKET LELANG (MANUAL)</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">User ID</label>
+                        <input type="number" id="auction-grant-user-id" min="1" placeholder="ID User..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">ID Produk Lelang</label>
+                        <input type="number" id="auction-grant-product-id" min="1" placeholder="ID Produk..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="KuroApp.grantAuctionAccess()" class="btn-gold w-full py-2 rounded-lg text-xs font-bold shadow-lg">
+                            BERI AKSES
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -289,20 +333,22 @@ require_once __DIR__ . '/includes/header.php';
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                    <label class="text-[10px] font-mono text-stone-400 uppercase">Tipe Edisi *</label>
-                    <select id="admin-prod-edition-type" onchange="KuroApp.onEditionTypeChange()" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
-                        <option value="Series-24">Series-24 (Komersial 24 Botol)</option>
-                        <option value="1-of-1">1-of-1 (Mahakarya Tunggal Dunia)</option>
-                        <option value="Limited Reserve">Limited Reserve (Privat)</option>
-                    </select>
-                </div>
-                <div>
                     <label class="text-[10px] font-mono text-stone-400 uppercase">Harga (Rupiah) *</label>
                     <input type="number" id="admin-prod-price" required min="100000" step="10000" placeholder="Contoh: 4850000" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
                 </div>
                 <div>
-                    <label class="text-[10px] font-mono text-stone-400 uppercase">Alokasi Stok (Unit) *</label>
-                    <input type="number" id="admin-prod-stock" required min="0" max="999" value="24" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    <label class="text-[10px] font-mono text-stone-400 uppercase">Alokasi Stok (Unit) *
+                        <span class="text-amber-400 ml-1">→ Menentukan Series</span>
+                    </label>
+                    <input type="number" id="admin-prod-stock" required min="1" max="999" value="24"
+                        oninput="KuroApp.previewSeriesCategory(this.value)"
+                        class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                </div>
+                <div>
+                    <label class="text-[10px] font-mono text-stone-400 uppercase">Preview Kategori Series</label>
+                    <div id="admin-prod-series-preview" class="w-full bg-stone-950 border border-stone-800 rounded-lg px-3 py-2 text-xs font-mono text-amber-300">
+                        Reguler Series (24 unit)
+                    </div>
                 </div>
             </div>
 
@@ -318,10 +364,9 @@ require_once __DIR__ . '/includes/header.php';
                 <div>
                     <label class="text-[10px] font-mono text-stone-400 uppercase">Status Inventaris</label>
                     <select id="admin-prod-status" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
-                        <option value="active">Active (Tersedia di Showroom)</option>
-                        <option value="vaulted">Vaulted (Tersimpan di Brankas)</option>
+                        <option value="available">Available (Tersedia di Showroom)</option>
+                        <option value="reserved">Reserved (Dipesan Kolektor)</option>
                         <option value="acquired">Acquired (Telah Terakuisisi)</option>
-                        <option value="archived">Archived (Diarsipkan)</option>
                     </select>
                 </div>
             </div>
@@ -353,8 +398,13 @@ require_once __DIR__ . '/includes/header.php';
             </div>
 
             <div>
-                <label class="text-[10px] font-mono text-stone-400 uppercase">Deskripsi Filosofis Karya</label>
+                <label class="text-[10px] font-mono text-stone-400 uppercase">Deskripsi Karya *</label>
                 <textarea id="admin-prod-desc" rows="3" required placeholder="Ceritakan sejarah, inspirasi kuil, dan perpaduan aroma yang terkandung..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none resize-none"></textarea>
+            </div>
+
+            <div>
+                <label class="text-[10px] font-mono text-stone-400 uppercase">Filosofi Wabi-Sabi & Shibui (Opsional)</label>
+                <textarea id="admin-prod-philosophy" rows="2" placeholder="Nilai spiritual kesunyian kuil Nara / tradisi Kyoto..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none resize-none"></textarea>
             </div>
 
             <!-- Notes Pyramid -->
@@ -371,6 +421,44 @@ require_once __DIR__ . '/includes/header.php';
                     <label class="text-[10px] font-mono text-amber-400 uppercase">Base Notes</label>
                     <input type="text" id="admin-prod-base-notes" placeholder="Contoh: Kyara Oud, Ambergris..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none">
                 </div>
+            </div>
+
+            <!-- Auction Config (shows when is_auction checked) -->
+            <div id="admin-prod-auction-section" class="bg-amber-950/20 border border-amber-500/30 rounded-xl p-4 space-y-3 hidden">
+                <div class="flex items-center gap-2 text-amber-400 text-xs font-mono font-bold tracking-wider">
+                    <i data-lucide="gavel" class="w-4 h-4"></i>
+                    <span>KONFIGURASI LELANG</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Harga Awal Lelang (Rp) *</label>
+                        <input type="number" id="admin-prod-auction-start" min="0" step="100000" placeholder="Contoh: 50000000" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Kelipatan Kenaikan Bid (Rp) *</label>
+                        <input type="number" id="admin-prod-auction-increment" min="0" step="100000" placeholder="Contoh: 1000000" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Status Lelang</label>
+                        <select id="admin-prod-auction-status" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                            <option value="upcoming">Upcoming (Belum Dibuka)</option>
+                            <option value="open">Open (Lelang Berlangsung)</option>
+                            <option value="closed">Closed (Lelang Ditutup)</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Batas Waktu Lelang</label>
+                        <input type="datetime-local" id="admin-prod-auction-end" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <input type="checkbox" id="admin-prod-is-auction" onchange="KuroApp.toggleAuctionSection(this.checked)" class="w-4 h-4 accent-amber-400">
+                <label for="admin-prod-is-auction" class="text-xs text-amber-300 font-mono cursor-pointer">Produk ini bisa dilelang (aktifkan konfigurasi lelang)</label>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-3 border-t border-stone-800">
@@ -467,7 +555,8 @@ document.addEventListener('DOMContentLoaded', () => {
         KuroApp.loadAdminStats();
         KuroApp.loadAdminOrders();
         KuroApp.loadAdminProducts();
-        KuroApp.loadAdminWhitelistRequests();
+        KuroApp.loadAdminAuctions();
+        KuroApp.loadAdminApplicants && KuroApp.loadAdminApplicants();
         KuroApp.loadAdminInviteCodes();
     }
 });

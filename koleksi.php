@@ -73,14 +73,24 @@ require_once __DIR__ . '/includes/header.php';
         <!-- Category Filters -->
         <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
             <button id="cat-all" onclick="KuroApp.filterCategory('all')" class="px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-amber-400 bg-amber-500/20 text-amber-300 font-bold transition-all shadow-md">
-                SEMUA KARYA (ALL EDITIONS)
+                SEMUA KARYA
             </button>
-            <button id="cat-Series-24" onclick="KuroApp.filterCategory('Series-24')" class="px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-stone-800 bg-stone-900 text-stone-400 hover:text-white hover:border-stone-700 transition-all">
-                SERIES 24 (EDISI TERBATAS 24 BOTOL)
+            <button id="cat-limited" onclick="KuroApp.filterCategory('limited')" class="px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-stone-800 bg-stone-900 text-stone-400 hover:text-white hover:border-stone-700 transition-all">
+                ⭐ LIMITED EDITION (1-OF-1)
             </button>
-            <button id="cat-1-of-1" onclick="KuroApp.filterCategory('1-of-1')" class="px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-stone-800 bg-stone-900 text-stone-400 hover:text-white hover:border-stone-700 transition-all">
-                1-OF-1 BESPOKE (MAHAKARYA TUNGGAL)
+            <button id="cat-premium" onclick="KuroApp.filterCategory('premium')" class="px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-stone-800 bg-stone-900 text-stone-400 hover:text-white hover:border-stone-700 transition-all">
+                🔶 PREMIUM SERIES (LIMIT 8)
             </button>
+            <button id="cat-deluxe" onclick="KuroApp.filterCategory('deluxe')" class="px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-stone-800 bg-stone-900 text-stone-400 hover:text-white hover:border-stone-700 transition-all">
+                🔷 DELUXE SERIES (LIMIT 12)
+            </button>
+            <button id="cat-reguler" onclick="KuroApp.filterCategory('reguler')" class="px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-stone-800 bg-stone-900 text-stone-400 hover:text-white hover:border-stone-700 transition-all">
+                ⬜ REGULER SERIES (LIMIT 24)
+            </button>
+            <a href="lelang.php" class="px-5 py-2.5 rounded-full text-xs font-serif-luxury tracking-widest border border-purple-500/40 bg-purple-950/20 text-purple-300 hover:border-purple-400 hover:text-purple-200 transition-all flex items-center gap-1.5">
+                <i data-lucide="gavel" class="w-3.5 h-3.5 text-purple-400"></i>
+                <span>RUANG LELANG</span>
+            </a>
         </div>
 
         <!-- Product Grid -->

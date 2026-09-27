@@ -65,6 +65,11 @@ function requireAuth(): array {
     return $user;
 }
 
+// Alias for requireAuth — use in auction & cart contexts
+function requireLogin(): array {
+    return requireAuth();
+}
+
 function requireAdmin(): array {
     $user = requireAuth();
     if ($user['role'] !== 'kuro_admin') {

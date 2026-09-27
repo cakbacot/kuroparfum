@@ -90,6 +90,10 @@ $currentPage = $currentPage ?? 'home';
                 <a href="koleksi.php" class="transition-colors <?= $currentPage === 'koleksi' ? 'text-amber-300 font-bold border-b border-amber-400 pb-1' : 'hover:text-amber-300' ?>">
                     RUANG PAMER
                 </a>
+                <a href="lelang.php" class="transition-colors <?= $currentPage === 'lelang' ? 'text-amber-300 font-bold border-b border-amber-400 pb-1' : 'hover:text-amber-300' ?> flex items-center gap-1.5">
+                    <i data-lucide="gavel" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>LELANG</span>
+                </a>
                 <a href="filosofi.php" class="transition-colors <?= $currentPage === 'filosofi' ? 'text-amber-300 font-bold border-b border-amber-400 pb-1' : 'hover:text-amber-300' ?>">
                     FILOSOFI
                 </a>
@@ -162,6 +166,10 @@ $currentPage = $currentPage ?? 'home';
         <div id="mobile-nav" class="hidden lg:hidden border-t border-stone-800 bg-[#070708]/95 backdrop-blur-xl px-6 py-4 space-y-3 font-serif-luxury text-xs tracking-widest">
             <a href="index.php" class="block py-2 <?= $currentPage === 'home' ? 'text-amber-300 font-bold' : 'text-stone-300' ?>">BERANDA</a>
             <a href="koleksi.php" class="block py-2 <?= $currentPage === 'koleksi' ? 'text-amber-300 font-bold' : 'text-stone-300' ?>">RUANG PAMER</a>
+            <a href="lelang.php" class="block py-2 <?= $currentPage === 'lelang' ? 'text-amber-300 font-bold' : 'text-stone-300' ?> flex items-center gap-2">
+                <i data-lucide="gavel" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span>RUANG LELANG (AUCTION)</span>
+            </a>
             <a href="filosofi.php" class="block py-2 <?= $currentPage === 'filosofi' ? 'text-amber-300 font-bold' : 'text-stone-300' ?>">FILOSOFI & CRAFT</a>
             <a href="whitelist.php" class="block py-2 <?= $currentPage === 'whitelist' ? 'text-amber-300 font-bold' : 'text-stone-300' ?>">AKSES VIP</a>
             <a href="verifikasi.php" class="block py-2 <?= $currentPage === 'verifikasi' ? 'text-amber-300 font-bold' : 'text-stone-300' ?>">VERIFIKASI COA</a>
