@@ -1,0 +1,278 @@
+/* ===================================================
+   KURO ATELIER - Japanese Executive Luxury Styling
+   Palette: Kuro Obsidian (#070708), Imperial Gold (#D4AF37),
+   Soft White (#F3F4F6), Warm Charcoal (#141416)
+   =================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Noto+Serif+JP:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --bg-kuro: #070708;
+    --bg-surface: #0f0f11;
+    --bg-card: #151518;
+    --gold-primary: #D4AF37;
+    --gold-light: #F4E095;
+    --gold-dark: #997819;
+    --gold-gradient: linear-gradient(135deg, #ECC86A 0%, #D4AF37 50%, #A27B1E 100%);
+    --gold-border: rgba(212, 175, 55, 0.28);
+    --gold-glow: 0 0 25px rgba(212, 175, 55, 0.22);
+}
+
+body {
+    background-color: var(--bg-kuro);
+    color: #E2E4E9;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+.font-serif-luxury {
+    font-family: 'Cinzel', serif;
+}
+
+.font-editorial {
+    font-family: 'Cormorant Garamond', serif;
+}
+
+.font-kanji {
+    font-family: 'Noto Serif JP', serif;
+}
+
+/* Gold Text Gradient */
+.text-gold-gradient {
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Luxury Gold Border */
+.border-gold-subtle {
+    border-color: var(--gold-border);
+}
+
+.border-gold-glow {
+    border-color: rgba(212, 175, 55, 0.45);
+    box-shadow: var(--gold-glow);
+}
+
+/* Glassmorphism Dark */
+.glass-kuro {
+    background: rgba(15, 15, 18, 0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.glass-kuro-card {
+    background: linear-gradient(180deg, rgba(24, 24, 28, 0.85) 0%, rgba(14, 14, 16, 0.95) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-kuro-card:hover {
+    border-color: rgba(212, 175, 55, 0.45);
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 175, 55, 0.12);
+}
+
+/* Gold Buttons */
+.btn-gold {
+    background: var(--gold-gradient);
+    color: #070708;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+}
+
+.btn-gold:hover {
+    filter: brightness(1.12);
+    box-shadow: 0 6px 25px rgba(212, 175, 55, 0.45);
+    transform: translateY(-1px);
+}
+
+.btn-outline-gold {
+    border: 1px solid var(--gold-primary);
+    color: var(--gold-light);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    background: rgba(212, 175, 55, 0.04);
+}
+
+.btn-outline-gold:hover {
+    background: rgba(212, 175, 55, 0.14);
+    border-color: var(--gold-light);
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #070708;
+}
+::-webkit-scrollbar-thumb {
+    background: #2a2820;
+    border-radius: 3px;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-primary);
+}
+
+/* Certificate of Authenticity Styling */
+.coa-parchment {
+    background: radial-gradient(circle at 50% 50%, #161513 0%, #0a0a0b 100%);
+    border: 2px solid #D4AF37;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.15);
+}
+
+.coa-inner-border {
+    border: 1px dashed rgba(212, 175, 55, 0.4);
+}
+
+.gold-wax-seal {
+    width: 72px;
+    height: 72px;
+    background: radial-gradient(circle, #D4AF37 0%, #8A6A12 80%, #594308 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.6);
+    border: 2px solid #F4E095;
+}
+
+/* Micro Animations */
+@keyframes pulseSubtle {
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+}
+
+.animate-pulse-subtle {
+    animation: pulseSubtle 4s infinite ease-in-out;
+}
+
+@keyframes goldShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.shimmer-text {
+    background: linear-gradient(90deg, #D4AF37 0%, #FFF5D0 50%, #D4AF37 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: goldShimmer 6s infinite linear;
+}
+
+/* 1-of-1 Badge */
+.badge-one-of-one {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.05) 100%);
+    border: 1px solid #D4AF37;
+    color: #F4E095;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+/* Official Japanese Hanko / Inkan Seal */
+.hanko-seal {
+    width: 60px;
+    height: 60px;
+    border: 2.5px solid #dc2626;
+    border-radius: 6px;
+    color: #dc2626;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 700;
+    line-height: 1.1;
+    transform: rotate(-4deg);
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.2);
+    background: rgba(220, 38, 38, 0.06);
+    user-select: none;
+}
+
+/* Print Stylesheet for Official Invoice */
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    #order-summary-modal,
+    #order-summary-modal * {
+        visibility: visible !important;
+    }
+    #order-summary-modal {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: #ffffff !important;
+        color: #111111 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        z-index: 99999 !important;
+        backdrop-filter: none !important;
+    }
+    #order-summary-content {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 16px !important;
+    }
+    #invoice-sheet {
+        background: #ffffff !important;
+        color: #111111 !important;
+        border: 2px solid #222222 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 24px !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    #invoice-sheet * {
+        color: #111111 !important;
+        border-color: #d1d5db !important;
+    }
+    #invoice-sheet .text-gold-gradient,
+    #invoice-sheet .text-amber-400,
+    #invoice-sheet .text-amber-300,
+    #invoice-sheet .text-amber-200 {
+        color: #854d0e !important;
+        -webkit-text-fill-color: #854d0e !important;
+    }
+    #invoice-sheet .bg-stone-900,
+    #invoice-sheet .bg-stone-950,
+    #invoice-sheet .bg-black\/40,
+    #invoice-sheet .bg-black\/50,
+    #invoice-sheet .bg-black\/60,
+    #invoice-sheet .glass-kuro {
+        background: #f9fafb !important;
+    }
+    #invoice-sheet .hanko-seal {
+        border-color: #b91c1c !important;
+        color: #b91c1c !important;
+        background: transparent !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+}

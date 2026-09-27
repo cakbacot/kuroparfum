@@ -1,0 +1,62 @@
+# ===================================================
+# Kuro Atelier - Git Ignore Rules
+# ===================================================
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor & IDE Directories / Files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# AI & Agent Workspace Directories
+.gemini/
+.antigravity/
+.system_generated/
+.agents/
+brain/
+
+# Scratch & Temporary Testing Scripts
+scratch/
+temp/
+tmp/
+*.tmp
+*.bak
+*.old
+*.cookie
+*cookie*.txt
+*.pid
+
+# Logs & Error Reports
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Sensitive Credentials
+.env
+.env.*
+!.env.example
+config/config.local.php
+secrets/
+
+# Database dumps / backups (keep schema.sql and seed scripts in database/)
+*.sql.gz
+*.sql.bak
+dump.sql
