@@ -107,7 +107,7 @@ require_once __DIR__ . '/includes/header.php';
             <!-- Card 2: Series 24 Limited Edition -->
             <div class="glass-kuro border border-stone-800 rounded-3xl p-8 space-y-6 relative overflow-hidden group shadow-2xl hover:border-amber-500/40 transition-all duration-500">
                 <div class="aspect-[16/10] rounded-2xl overflow-hidden bg-black border border-stone-800 relative">
-                    <img src="assets/images/kuro_flacon_1.jpg" alt="Series 24 Flacon" class="w-full h-full object-cover filter brightness-90 group-hover:scale-105 group-hover:brightness-100 transition-all duration-700">
+                    <img src="assets/images/kuro_sumi.jpg" alt="Series 24 Flacon" class="w-full h-full object-cover filter brightness-90 group-hover:scale-105 group-hover:brightness-100 transition-all duration-700">
                     <div class="absolute top-4 left-4 bg-black/80 backdrop-blur-md px-3 py-1 rounded-full border border-stone-700 text-[10px] font-mono text-stone-300">
                         SERIES 24 • BATAS 24 BOTOL
                     </div>
