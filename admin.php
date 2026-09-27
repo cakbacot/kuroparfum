@@ -385,15 +385,15 @@ require_once __DIR__ . '/includes/header.php';
             <div>
                 <label class="text-[10px] font-mono text-stone-400 uppercase block mb-1">Visual Flacon (Path Aset Gambar)</label>
                 <div class="flex items-center gap-2 mb-2">
-                    <input type="text" id="admin-prod-image" required value="assets/images/kuro_flacon_1.jpg" class="flex-1 bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none">
+                    <input type="text" id="admin-prod-image" required value="assets/images/kuro_hinoki_shrine.jpg" class="flex-1 bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white font-mono outline-none">
                 </div>
                 <div class="flex flex-wrap gap-2 text-[10px]">
                     <span class="text-stone-500 self-center">Pilihan Cepat:</span>
-                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_kyara_oud.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Kyara Oud (Baru)</button>
-                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_shogun.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Kuro Shogun (Baru)</button>
-                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_flacon_1.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Flacon 1 (Gold/Obsidian)</button>
-                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_flacon_2.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Flacon 2 (Sumi Ink)</button>
-                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_flacon_3.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Flacon 3 (Kyoto Shrine)</button>
+                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_hinoki_shrine.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Hinoki Shrine (Deluxe)</button>
+                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_kyara_oud.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Kyara Oud (Lelang)</button>
+                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_series24_noir.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Noir (Reguler)</button>
+                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_series24_amber.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Amber (Reguler)</button>
+                    <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_kintsugi.jpg')" class="px-2 py-1 rounded bg-stone-900 border border-stone-700 hover:border-amber-400 text-stone-300">Kintsugi (1-of-1)</button>
                 </div>
             </div>
 

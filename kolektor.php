@@ -288,7 +288,7 @@ async function loadUserPortalOrders() {
                         ${(o.items || []).map(it => `
                             <div class="flex items-center justify-between text-xs py-1.5 border-b border-stone-900">
                                 <div class="flex items-center gap-3">
-                                    <img src="${it.image_url || 'assets/images/kuro_flacon_1.jpg'}" class="w-10 h-10 object-cover rounded-lg border border-stone-800" alt="${it.product_name}">
+                                    <img src="${it.image_url || 'assets/images/kuro_series24_noir.jpg'}" class="w-10 h-10 object-cover rounded-lg border border-stone-800" alt="${it.product_name}">
                                     <div>
                                         <div class="font-semibold text-white">${it.product_name}</div>
                                         <div class="text-[10px] text-stone-500 font-mono">Jumlah: ${it.quantity} unit • ${it.edition_serial || 'Series 24'}</div>

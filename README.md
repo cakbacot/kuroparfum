@@ -131,52 +131,9 @@ Skrip ini akan secara otomatis:
 
 ---
 
-## 🔑 5. Akun & Kredensial Pengujian (Siap Pakai)
 
-Semua akun di bawah ini telah disiapkan di database dan siap digunakan untuk menguji seluruh alur website Kuro Atelier:
 
-### A. Akun Terverifikasi (VIP Whitelist / Sovereign Collector)
-Akun ini memiliki hak akses eksklusif tertinggi. Dapat melihat seluruh harga karya edisi tunggal (1-of-1), melakukan direct concierge dengan Master Kuro, membeli mahakarya 1-of-1, dan membeli Series 24:
-| Nama Akun | Email | Kata Sandi | Status & Hak Akses |
-| :--- | :--- | :--- | :--- |
-| **Daisuke Tanaka** | `tanaka@executives.co.jp` | `password123` | **👑 Terverifikasi VIP Whitelist** (Akses Penuh 1-of-1 & Series 24) |
-| **Elena Rostova** | `elena.rostova@geneva-arts.ch` | `password123` | **👑 Terverifikasi VIP Whitelist** (Kolektor Geneva Arts) |
-
----
-
-### B. Akun Gratis / Member Bebas (Untuk Ujicoba Belanja Series 24 Sampai Selesai)
-Akun ini digunakan untuk menguji pembelian edisi **Kuro Series 24** (harga Rp 4,85 Jt - Rp 5,6 Jt) tanpa perlu persetujuan kurasi VIP Whitelist. Anda dapat menambahkan ke keranjang dan memproses checkout sampai tahap penguncian alokasi:
-| Nama Akun | Email | Kata Sandi | Status & Hak Akses |
-| :--- | :--- | :--- | :--- |
-| **Budi Pratama (Akun Gratis)** | `gratis@kuro.com` | `password123` | **🛒 Akun Bebas / Gratis** (Bebas Belanja Series 24 + Keranjang + Checkout) |
-
----
-
-### C. Akun Pending Kurasi (Menunggu Persetujuan Master Kuro)
-Akun ini digunakan untuk menguji alur pengajuan keanggotaan (permohonan kurasi yang sedang ditinjau):
-| Nama Akun | Email | Kata Sandi | Status & Hak Akses |
-| :--- | :--- | :--- | :--- |
-| **Arthur Sterling** | `arthur.sterling@mayfair.co.uk` | `password123` | **⏳ Menunggu Kurasi (Pending)** |
-
----
-
-### D. Akun Creator / Administrator (Kuro Master Perfumer)
-Akun ini memiliki akses ke **Kuro Atelier Desk** untuk melihat statistik penjualan, mengkurasi/menyetujui pendaftar whitelist, dan membuat kode undangan:
-| Nama Akun | Email | Kata Sandi | Status & Hak Akses |
-| :--- | :--- | :--- | :--- |
-| **Kuro (Master Perfumer)** | `kuro@atelier.com` | `password123` | **⚜️ Kuro Master / Creator Admin** (Panel Kurasi & Arsip) |
-
----
-
-### 🎟️ Kode Undangan VIP Eksklusif (Invite Codes)
-Jika Anda mendaftar akun baru dan ingin langsung mendapatkan status VIP Whitelist tanpa menunggu kurasi:
-- `KURO-VIP-2026`
-- `SHIBUI-CHAMBER`
-- `WABI-SABI-01`
-
----
-
-## 🗺️ 6. Arsitektur Multi-Page & Sitemap
+## 🗺️ 5. Arsitektur Multi-Page & Sitemap
 Platform kini telah dirapikan menjadi struktur multi-halaman terpisah untuk mencegah scroll berkepanjangan dan memberikan pengalaman navigasi eksekutif:
 
 | Halaman | URL | Fungsi & Fitur Utama |
@@ -191,7 +148,7 @@ Platform kini telah dirapikan menjadi struktur multi-halaman terpisah untuk menc
 
 ---
 
-## 🧪 7. Panduan Cepat Ujicoba Fitur (Step-by-Step)
+## 🧪 6. Panduan Cepat Ujicoba Fitur (Step-by-Step)
 
 ### Ujicoba 1: Halaman Admin Khusus Kuro Master (`admin.php`)
 1. Buka website di [**http://127.0.0.1:8000**](http://127.0.0.1:8000).

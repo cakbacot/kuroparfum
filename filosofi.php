@@ -49,7 +49,7 @@ require_once __DIR__ . '/includes/header.php';
                     </p>
                 </div>
                 <div class="rounded-2xl overflow-hidden border border-stone-800 bg-stone-950 p-2 shadow-2xl">
-                    <img src="assets/images/kuro_flacon_1.jpg" alt="Flacon Kuro Obsidian" class="w-full h-80 object-cover rounded-xl filter brightness-90 hover:brightness-100 transition-all duration-700">
+                    <img src="assets/images/kuro_kyara_oud.jpg" alt="Flacon Kuro Obsidian" class="w-full h-80 object-cover rounded-xl filter brightness-90 hover:brightness-100 transition-all duration-700">
                 </div>
             </div>
         </div>
