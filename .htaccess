@@ -1,0 +1,36 @@
+# ===================================================
+# Kuro Atelier - Web Server Hardening & Security Policy
+# ===================================================
+
+# 1. Disable Directory Browsing / Indexing
+Options -Indexes
+
+# 2. Block Direct Access to Sensitive Files and Directories
+<FilesMatch "^(\.git|\.env|composer\.(json|lock)|.*\.sql|.*\.ini|.*\.bat|.*\.md)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 3. Protect internal directories from direct HTTP exposure
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^database/ - [F,L]
+</IfModule>
+
+# 4. HTTP Security Headers
+<IfModule mod_headers.c>
+    # Prevent clickjacking / frame embedding
+    Header set X-Frame-Options "SAMEORIGIN"
+    # Prevent MIME sniffing
+    Header set X-Content-Type-Options "nosniff"
+    # Cross-site scripting filter
+    Header set X-XSS-Protection "1; mode=block"
+    # Referrer policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

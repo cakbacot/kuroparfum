@@ -25,11 +25,13 @@ switch ($action) {
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
-        // Check password or support demo default password
-        if (!$user || (!password_verify($password, $user['password_hash']) && $password !== 'password123' && $password !== 'kuro123')) {
+        // Strict Bcrypt password verification
+        if (!$user || !password_verify($password, $user['password_hash'])) {
             jsonResponse(false, 'Kredensial tidak valid atau akun tidak ditemukan.', [], 401);
         }
 
+        // Regenerate session ID to prevent Session Fixation attacks
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         unset($user['password_hash']);
 
@@ -138,6 +140,14 @@ switch ($action) {
         break;
 
     case 'logout':
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
         session_destroy();
         jsonResponse(true, 'Sesi berhasil diakhiri.');
         break;

@@ -94,6 +94,16 @@ const KuroApp = {
         }
     },
 
+    escapeHtml: function(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    },
+
     // ----------------------------------------------------
     // Session & Auth
     // ----------------------------------------------------
@@ -1939,22 +1949,22 @@ const KuroApp = {
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 text-xs">
                             <div class="md:col-span-4 space-y-1.5 bg-black/40 p-3 rounded-xl border border-stone-900">
                                 <div class="text-[10px] font-mono text-stone-400 uppercase tracking-widest font-bold">DATA PEMESAN</div>
-                                <div class="font-bold text-white text-sm">${o.client_name || 'Pembeli Kuro'}</div>
-                                <div class="text-stone-400 font-mono text-[11px]">${o.client_email}</div>
-                                <div class="text-amber-300/80 text-[11px]">${o.title_company || 'Pelanggan Terdaftar'}</div>
+                                <div class="font-bold text-white text-sm">${this.escapeHtml(o.client_name || 'Pembeli Kuro')}</div>
+                                <div class="text-stone-400 font-mono text-[11px]">${this.escapeHtml(o.client_email)}</div>
+                                <div class="text-amber-300/80 text-[11px]">${this.escapeHtml(o.title_company || 'Pelanggan Terdaftar')}</div>
                             </div>
 
                             <div class="md:col-span-8 space-y-1.5 bg-black/40 p-3 rounded-xl border border-stone-900">
                                 <div class="text-[10px] font-mono text-stone-400 uppercase tracking-widest font-bold">ALAMAT & CATATAN PENGIRIMAN</div>
-                                <p class="text-stone-300 whitespace-pre-line leading-relaxed text-[11px]">${o.delivery_address || 'Alamat tidak dicantumkan'}</p>
+                                <p class="text-stone-300 whitespace-pre-line leading-relaxed text-[11px]">${this.escapeHtml(o.delivery_address || 'Alamat tidak dicantumkan')}</p>
                                 ${o.courier_name || o.tracking_number ? `
                                     <div class="mt-2 pt-2 border-t border-stone-800/80 flex items-center gap-3 text-[11px]">
-                                        <span class="text-stone-400">Ekspedisi: <strong class="text-amber-300">${o.courier_name || '-'}</strong></span>
-                                        <span class="text-stone-400">Resi: <strong class="text-white font-mono bg-stone-900 px-2 py-0.5 rounded">${o.tracking_number || '-'}</strong></span>
+                                        <span class="text-stone-400">Ekspedisi: <strong class="text-amber-300">${this.escapeHtml(o.courier_name || '-')}</strong></span>
+                                        <span class="text-stone-400">Resi: <strong class="text-white font-mono bg-stone-900 px-2 py-0.5 rounded">${this.escapeHtml(o.tracking_number || '-')}</strong></span>
                                     </div>
                                 ` : ''}
                                 ${o.fulfillment_notes ? `
-                                    <div class="text-[10px] text-amber-200/80 italic mt-1">Catatan: "${o.fulfillment_notes}"</div>
+                                    <div class="text-[10px] text-amber-200/80 italic mt-1">Catatan: "${this.escapeHtml(o.fulfillment_notes)}"</div>
                                 ` : ''}
                             </div>
                         </div>
@@ -2538,13 +2548,13 @@ const KuroApp = {
                     <div class="glass-kuro p-4 rounded-xl border border-stone-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <h4 class="font-serif-luxury font-bold text-white text-sm">${r.full_name}</h4>
+                                <h4 class="font-serif-luxury font-bold text-white text-sm">${this.escapeHtml(r.full_name)}</h4>
                                 <span class="text-[10px] font-mono px-2 py-0.5 rounded-full ${
                                     r.status === 'approved' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'
                                 }">${r.status.toUpperCase()}</span>
                             </div>
-                            <div class="text-xs text-amber-200/80">${r.organization_title} • <span class="text-stone-400 font-mono">${r.email}</span></div>
-                            <p class="text-xs text-stone-300 italic font-editorial">"${r.statement_of_intent}"</p>
+                            <div class="text-xs text-amber-200/80">${this.escapeHtml(r.organization_title)} • <span class="text-stone-400 font-mono">${this.escapeHtml(r.email)}</span></div>
+                            <p class="text-xs text-stone-300 italic font-editorial">"${this.escapeHtml(r.statement_of_intent)}"</p>
                         </div>
                         ${r.status === 'pending' ? `
                             <div class="flex items-center gap-2 shrink-0">
