@@ -5,19 +5,14 @@ echo ========================================================
 echo   KURO (黒) • HAUTE PARFUMERIE 1-OF-1 BESPOKE TOKYO
 echo ========================================================
 echo.
-echo [1/3] Memeriksa Layanan MySQL...
+echo [1/3] Memeriksa Layanan MariaDB MySQL (Port 3307)...
 netstat -ano | findstr :3307 >nul
 if %errorlevel% neq 0 (
-    netstat -ano | findstr :3306 >nul
-    if %errorlevel% neq 0 (
-        echo Menjalankan MariaDB/MySQL pada port 3307...
-        start "" "C:\xampp\mysql\bin\mysqld.exe" --defaults-file="C:\xampp\mysql\bin\my.ini" --port=3307
-        timeout /t 2 /nobreak >nul
-    ) else (
-        echo MySQL terdeteksi aktif pada port 3306.
-    )
+    echo Menjalankan MariaDB/MySQL XAMPP pada port 3307...
+    start "" "C:\xampp\mysql\bin\mysqld.exe" --defaults-file="C:\xampp\mysql\bin\my.ini" --port=3307
+    timeout /t 2 /nobreak >nul
 ) else (
-    echo MySQL terdeteksi aktif pada port 3307.
+    echo MariaDB/MySQL XAMPP telah aktif pada port 3307.
 )
 
 echo.
