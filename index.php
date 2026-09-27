@@ -596,8 +596,7 @@ $isWhitelisted = isWhitelisted();
                 </p>
 
                 <div class="space-y-2">
-                    <input type="text" id="invite-code-input" placeholder="Contoh: KURO-VIP-2026 atau SHIBUI-CHAMBER" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-xl px-4 py-3 text-xs text-amber-200 uppercase font-mono tracking-widest outline-none text-center">
-                    <div class="text-[10px] text-stone-500 text-center font-mono">Kode Uji Coba Tersedia: KURO-VIP-2026, SHIBUI-CHAMBER</div>
+                    <input type="text" id="invite-code-input" placeholder="MASUKKAN KODE UNDANGAN 12-DIGIT" autocomplete="off" value="" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-xl px-4 py-3 text-xs text-amber-200 uppercase font-mono tracking-widest outline-none text-center">
                 </div>
 
                 <button onclick="KuroApp.submitInviteCode()" class="btn-gold w-full py-3 rounded-xl text-xs font-bold">
@@ -1167,30 +1166,14 @@ $isWhitelisted = isWhitelisted();
             </div>
 
             <!-- Form: Login -->
-            <form id="form-auth-login" onsubmit="KuroApp.submitLogin(event)" class="space-y-4 text-left">
+            <form id="form-auth-login" onsubmit="KuroApp.submitLogin(event)" class="space-y-4 text-left" autocomplete="off">
                 <div>
                     <label class="text-[10px] font-mono text-stone-400 uppercase">Alamat Email</label>
-                    <input type="email" name="email" required placeholder="email@domain.com" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    <input type="email" name="email" id="login-email" required placeholder="email@domain.com" autocomplete="off" value="" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
                 </div>
                 <div>
                     <label class="text-[10px] font-mono text-stone-400 uppercase">Kata Sandi</label>
-                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
-                </div>
-
-                <div class="text-[11px] text-stone-400 bg-black/40 border border-stone-800 rounded-lg p-2.5 space-y-1">
-                    <div class="font-mono text-amber-400 font-semibold text-[10px] uppercase">AKUN PENGUJIAN SIAP PAKAI (Password: password123):</div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span>👑 Terverifikasi VIP (Tanaka):</span>
-                        <span class="text-amber-300 font-mono">tanaka@executives.co.jp</span>
-                    </div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span>🛒 Akun Gratis (Budi Pratama):</span>
-                        <span class="text-sky-300 font-mono">gratis@kuro.com</span>
-                    </div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span>⚜️ Kuro Master (Admin):</span>
-                        <span class="text-amber-200 font-mono">kuro@atelier.com</span>
-                    </div>
+                    <input type="password" name="password" id="login-password" required placeholder="••••••••" autocomplete="new-password" value="" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
                 </div>
 
                 <button type="submit" class="btn-gold w-full py-3 rounded-xl text-xs font-bold">

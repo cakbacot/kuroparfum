@@ -177,6 +177,23 @@ const KuroApp = {
         this.playZenChime('chime');
         const modal = document.getElementById('auth-modal');
         const alertBox = document.getElementById('auth-modal-alert');
+        const formLogin = document.getElementById('form-auth-login');
+        const formRegister = document.getElementById('form-auth-register');
+
+        // Always ensure form inputs are completely blank
+        if (formLogin) {
+            formLogin.reset();
+            const emailInput = formLogin.querySelector('input[name="email"]');
+            const passInput = formLogin.querySelector('input[name="password"]');
+            if (emailInput) emailInput.value = '';
+            if (passInput) passInput.value = '';
+        }
+        if (formRegister) {
+            formRegister.reset();
+        }
+
+        this.switchAuthTab('login');
+
         if (modal) {
             if (alertMsg && alertBox) {
                 alertBox.textContent = alertMsg;
@@ -191,6 +208,14 @@ const KuroApp = {
     closeLoginModal: function() {
         const modal = document.getElementById('auth-modal');
         if (modal) modal.classList.add('hidden');
+        const formLogin = document.getElementById('form-auth-login');
+        if (formLogin) {
+            formLogin.reset();
+            const emailInput = formLogin.querySelector('input[name="email"]');
+            const passInput = formLogin.querySelector('input[name="password"]');
+            if (emailInput) emailInput.value = '';
+            if (passInput) passInput.value = '';
+        }
     },
 
     switchAuthTab: function(tab) {
@@ -1173,6 +1198,11 @@ const KuroApp = {
     openWhitelistModal: function(tab = 'invite') {
         this.playZenChime('chime');
         const modal = document.getElementById('whitelist-modal');
+        const inviteInput = document.getElementById('invite-code-input');
+        if (inviteInput) inviteInput.value = '';
+        const applyForm = document.getElementById('whitelist-apply-form');
+        if (applyForm) applyForm.reset();
+
         if (modal) {
             modal.classList.remove('hidden');
             this.switchWhitelistTab(tab);
