@@ -326,74 +326,186 @@ $isWhitelisted = isWhitelisted();
          KURO ATELIER DESK / ADMIN SECTION (PRD: MANAGEMENT)
          Hidden by default, unlocked for Kuro Admin
          =================================================== -->
-    <section id="admin-section" class="hidden py-20 bg-black border-b border-amber-500/40 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <section id="admin-section" class="hidden py-16 bg-black border-b border-amber-500/40 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             <!-- Admin Header -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-amber-500/30 pb-6">
                 <div>
                     <div class="flex items-center gap-2 text-amber-400 text-xs font-mono tracking-widest uppercase">
-                        <i data-lucide="shield" class="w-4 h-4"></i>
-                        <span>KURO ATELIER • CREATOR DESK</span>
+                        <i data-lucide="shield-check" class="w-4 h-4 text-amber-400"></i>
+                        <span>KURO ATELIER • CREATOR & MASTER DESK</span>
                     </div>
                     <h2 class="font-serif-luxury text-2xl md:text-3xl font-bold text-white mt-1">
-                        PANEL KURASI & INVENTARIS EDISI TUNGGAL
+                        PUSAT KENDALI PESANAN, PENGIRIMAN & INVENTARIS PRODUK
                     </h2>
+                    <p class="text-xs text-stone-400 font-light mt-1">
+                        Kelola alur pemesanan website, konfirmasi status pembayaran, perbarui tahapan pengiriman paket, dan lakukan manajemen katalog karya Kuro secara penuh.
+                    </p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button onclick="KuroApp.loadAdminStats(); KuroApp.loadAdminApplicants();" class="glass-kuro px-3 py-1.5 rounded-lg text-xs text-amber-300 hover:text-white border border-amber-500/30 flex items-center gap-1.5">
+                <div class="flex items-center gap-3 shrink-0">
+                    <button onclick="KuroApp.refreshAdminData()" class="glass-kuro px-3.5 py-2 rounded-xl text-xs text-amber-300 hover:text-white border border-amber-500/30 flex items-center gap-1.5 transition-all">
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
                         <span>Segarkan Data</span>
                     </button>
-                    <button onclick="KuroApp.toggleAdminDesk()" class="text-stone-400 hover:text-white text-xs font-mono">
+                    <button onclick="KuroApp.toggleAdminDesk()" class="text-stone-400 hover:text-white text-xs font-mono px-3.5 py-2 rounded-xl border border-stone-800 hover:border-stone-700 transition-colors">
                         ✕ Tutup Panel
                     </button>
                 </div>
             </div>
 
             <!-- Atelier Statistics Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
                 <div class="glass-kuro p-4 rounded-xl border border-amber-500/30">
-                    <div class="text-[11px] font-mono text-stone-400 uppercase">Pemohon Whitelist Pending</div>
-                    <div id="stat-pending-applicants" class="font-serif-luxury text-2xl font-bold text-amber-300 mt-1">0</div>
+                    <div class="text-[10px] font-mono text-stone-400 uppercase">Total Pesanan Website</div>
+                    <div id="stat-total-orders" class="font-serif-luxury text-2xl font-bold text-amber-300 mt-1">0</div>
+                    <div class="text-[10px] text-stone-500 font-mono mt-0.5">Semua Transaksi Masuk</div>
                 </div>
                 <div class="glass-kuro p-4 rounded-xl border border-amber-500/30">
-                    <div class="text-[11px] font-mono text-stone-400 uppercase">Kolektor Sovereign Disetujui</div>
-                    <div id="stat-approved-members" class="font-serif-luxury text-2xl font-bold text-emerald-400 mt-1">0</div>
+                    <div class="text-[10px] font-mono text-stone-400 uppercase">Perlu Diproses / Kirim</div>
+                    <div id="stat-pending-fulfillment" class="font-serif-luxury text-2xl font-bold text-amber-400 mt-1">0</div>
+                    <div class="text-[10px] text-stone-500 font-mono mt-0.5">Sedang Dikemas / Kirim</div>
                 </div>
                 <div class="glass-kuro p-4 rounded-xl border border-amber-500/30">
-                    <div class="text-[11px] font-mono text-stone-400 uppercase">Flacon 1-of-1 Tersedia</div>
+                    <div class="text-[10px] font-mono text-stone-400 uppercase">Total Flacon Tersedia</div>
                     <div id="stat-available-flacons" class="font-serif-luxury text-2xl font-bold text-amber-200 mt-1">0 / 0</div>
+                    <div class="text-[10px] text-stone-500 font-mono mt-0.5">Edisi 1-of-1 & Series 24</div>
                 </div>
                 <div class="glass-kuro p-4 rounded-xl border border-amber-500/30">
-                    <div class="text-[11px] font-mono text-stone-400 uppercase">Total Valuasi Terakuisisi</div>
+                    <div class="text-[10px] font-mono text-stone-400 uppercase">Kolektor Sovereign VIP</div>
+                    <div id="stat-approved-members" class="font-serif-luxury text-2xl font-bold text-emerald-400 mt-1">0</div>
+                    <div class="text-[10px] text-stone-500 font-mono mt-0.5">Patron Whitelist Disetujui</div>
+                </div>
+                <div class="glass-kuro p-4 rounded-xl border border-amber-500/30 col-span-2 sm:col-span-1">
+                    <div class="text-[10px] font-mono text-stone-400 uppercase">Total Valuasi Terkonfirmasi</div>
                     <div id="stat-total-revenue" class="font-serif-luxury text-lg font-bold text-gold-gradient mt-1">Rp 0</div>
+                    <div class="text-[10px] text-stone-500 font-mono mt-0.5">Pembayaran Lunas</div>
                 </div>
             </div>
 
-            <!-- Applicants & Invite Codes Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- Left: Applicants Queue (Curating) -->
-                <div class="lg:col-span-8 space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-serif-luxury text-lg font-bold text-amber-200">
-                            Antrean Kurasi Permohonan Akses (Whitelist Applicants)
-                        </h3>
-                        <span class="text-xs text-stone-500 font-mono">Ditinjau oleh Master Kuro</span>
+            <!-- Admin Navigation Tabs -->
+            <div class="flex items-center gap-2 border-b border-stone-800 pb-3 overflow-x-auto">
+                <button id="admin-tab-btn-orders" onclick="KuroApp.switchAdminTab('orders')" class="admin-tab-btn px-4 py-2.5 rounded-xl text-xs font-serif-luxury font-bold tracking-wider flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0 transition-all">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    <span>MANAJEMEN PESANAN & PENGIRIMAN</span>
+                    <span id="badge-admin-orders-count" class="bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full text-[10px] font-mono">0</span>
+                </button>
+                <button id="admin-tab-btn-products" onclick="KuroApp.switchAdminTab('products')" class="admin-tab-btn px-4 py-2.5 rounded-xl text-xs font-serif-luxury font-bold tracking-wider flex items-center gap-2 text-stone-400 hover:text-white border border-transparent shrink-0 transition-all">
+                    <i data-lucide="flask-conical" class="w-4 h-4"></i>
+                    <span>CRUD KATALOG & INVENTARIS PRODUK</span>
+                    <span id="badge-admin-products-count" class="bg-stone-800 text-stone-400 px-2 py-0.5 rounded-full text-[10px] font-mono">0</span>
+                </button>
+                <button id="admin-tab-btn-whitelist" onclick="KuroApp.switchAdminTab('whitelist')" class="admin-tab-btn px-4 py-2.5 rounded-xl text-xs font-serif-luxury font-bold tracking-wider flex items-center gap-2 text-stone-400 hover:text-white border border-transparent shrink-0 transition-all">
+                    <i data-lucide="award" class="w-4 h-4"></i>
+                    <span>KURASI WHITELIST</span>
+                    <span id="badge-admin-whitelist-count" class="bg-stone-800 text-stone-400 px-2 py-0.5 rounded-full text-[10px] font-mono">0</span>
+                </button>
+                <button id="admin-tab-btn-invites" onclick="KuroApp.switchAdminTab('invites')" class="admin-tab-btn px-4 py-2.5 rounded-xl text-xs font-serif-luxury font-bold tracking-wider flex items-center gap-2 text-stone-400 hover:text-white border border-transparent shrink-0 transition-all">
+                    <i data-lucide="key" class="w-4 h-4"></i>
+                    <span>KODE UNDANGAN VIP</span>
+                </button>
+            </div>
+
+            <!-- ==============================================
+                 TAB PANE 1: ORDERS & FULFILLMENT MANAGEMENT
+                 ============================================== -->
+            <div id="admin-tab-pane-orders" class="space-y-6">
+                <!-- Orders Filter & Search Toolbar -->
+                <div class="glass-kuro p-4 rounded-2xl border border-stone-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <span class="text-xs font-mono text-stone-400 uppercase">Filter:</span>
+                        <!-- Filter Payment -->
+                        <select id="admin-filter-payment" onchange="KuroApp.applyOrdersFilter()" class="bg-stone-950 border border-stone-800 text-xs text-white rounded-lg px-3 py-1.5 outline-none focus:border-amber-400">
+                            <option value="">Semua Status Bayar</option>
+                            <option value="checkout_review">Belum Bayar (Tahap Review)</option>
+                            <option value="pending_verification">Menunggu Verifikasi</option>
+                            <option value="confirmed">Lunas (Terkonfirmasi)</option>
+                            <option value="completed">Transaksi Selesai</option>
+                            <option value="cancelled">Dibatalkan</option>
+                        </select>
+                        <!-- Filter Fulfillment -->
+                        <select id="admin-filter-fulfillment" onchange="KuroApp.applyOrdersFilter()" class="bg-stone-950 border border-stone-800 text-xs text-white rounded-lg px-3 py-1.5 outline-none focus:border-amber-400">
+                            <option value="">Semua Status Pengiriman</option>
+                            <option value="menunggu">Menunggu Konfirmasi</option>
+                            <option value="dikemas">Sedang Dikemas (Packaging)</option>
+                            <option value="dikirim">Sedang Dalam Pengiriman</option>
+                            <option value="selesai">Barang Sudah Diterima</option>
+                            <option value="dibatalkan">Pengiriman Dibatalkan</option>
+                        </select>
                     </div>
 
-                    <div id="admin-applicants-table" class="space-y-3">
-                        <!-- Populated dynamically via KuroApp.loadAdminApplicants() -->
+                    <div class="flex items-center gap-2 w-full md:w-80">
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-stone-500 absolute left-3 top-2.5"></i>
+                            <input type="text" id="admin-orders-search" oninput="KuroApp.debounceOrdersSearch()" placeholder="Cari No. Order / Invoice / Nama..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white outline-none">
+                        </div>
+                        <button onclick="KuroApp.loadAdminOrders()" class="glass-kuro px-3 py-1.5 rounded-lg text-xs text-amber-300 border border-stone-800 hover:border-amber-400">
+                            Cari
+                        </button>
                     </div>
                 </div>
 
-                <!-- Right: VIP Invite Generator -->
-                <div class="lg:col-span-4 space-y-4">
-                    <div class="glass-kuro p-6 rounded-2xl border border-amber-500/30 space-y-4">
+                <!-- Orders List Container -->
+                <div id="admin-orders-list" class="space-y-4">
+                    <!-- Populated dynamically via KuroApp.loadAdminOrders() -->
+                </div>
+            </div>
+
+            <!-- ==============================================
+                 TAB PANE 2: PRODUCTS CRUD & INVENTORY
+                 ============================================== -->
+            <div id="admin-tab-pane-products" class="hidden space-y-6">
+                <!-- Products Action Toolbar -->
+                <div class="glass-kuro p-4 rounded-2xl border border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-serif-luxury text-base font-bold text-white">
+                            Inventaris Koleksi Kuro Tokyo
+                        </h3>
+                        <p class="text-xs text-stone-400 font-light">
+                            Kelola mahakarya Bespoke 1-of-1, edisi terbatas Series 24, stok unit, harga, serta deskripsi olfaktori.
+                        </p>
+                    </div>
+                    <button onclick="KuroApp.openProductModal(0)" class="btn-gold px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shrink-0">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>+ TAMBAH PRODUK BARU</span>
+                    </button>
+                </div>
+
+                <!-- Products Table / Grid Container -->
+                <div id="admin-products-list" class="space-y-4">
+                    <!-- Populated dynamically via KuroApp.loadAdminProducts() -->
+                </div>
+            </div>
+
+            <!-- ==============================================
+                 TAB PANE 3: WHITELIST APPLICANTS QUEUE
+                 ============================================== -->
+            <div id="admin-tab-pane-whitelist" class="hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-serif-luxury text-lg font-bold text-amber-200">
+                            Antrean Kurasi Permohonan Akses (Whitelist Applicants)
+                        </h3>
+                        <p class="text-xs text-stone-400 font-light">Tinjau permohonan keanggotaan privat untuk membuka hak istimewa akuisisi edisi 1-of-1.</p>
+                    </div>
+                    <span class="text-xs text-stone-500 font-mono">Ditinjau oleh Master Kuro</span>
+                </div>
+
+                <div id="admin-applicants-table" class="space-y-3">
+                    <!-- Populated dynamically via KuroApp.loadAdminApplicants() -->
+                </div>
+            </div>
+
+            <!-- ==============================================
+                 TAB PANE 4: VIP INVITE CODES GENERATOR
+                 ============================================== -->
+            <div id="admin-tab-pane-invites" class="hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-5 glass-kuro p-6 rounded-2xl border border-amber-500/30 space-y-4">
                         <h3 class="font-serif-luxury text-base font-bold text-amber-300">
                             Terbitkan Kode Undangan VIP
                         </h3>
                         <p class="text-xs text-stone-400 font-light">
-                            Kode undangan memberikan akses langsung tanpa melalui antrean kurasi.
+                            Kode undangan memberikan akses instan status keanggotaan VIP tanpa melalui antrean kurasi manual.
                         </p>
 
                         <div class="space-y-3">
@@ -405,16 +517,20 @@ $isWhitelisted = isWhitelisted();
                                 <label class="text-[10px] font-mono text-stone-400 uppercase">Batas Pemakaian (Kuota)</label>
                                 <input type="number" id="new-invite-quota" value="1" min="1" max="50" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
                             </div>
-                            <button onclick="KuroApp.generateNewInviteCode()" class="btn-gold w-full py-2.5 rounded-lg text-xs font-bold">
-                                GENERATE KODE VIP
+                            <button onclick="KuroApp.generateNewInviteCode()" class="btn-gold w-full py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg">
+                                <i data-lucide="key" class="w-4 h-4"></i>
+                                <span>GENERATE KODE VIP</span>
                             </button>
                         </div>
+                    </div>
 
-                        <div class="border-t border-stone-800 pt-3 space-y-2">
-                            <div class="text-[10px] font-mono text-stone-500 uppercase tracking-widest">KODE UNDANGAN AKTIF</div>
-                            <div id="admin-invite-codes-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
-                                <!-- Populated dynamically -->
-                            </div>
+                    <div class="lg:col-span-7 glass-kuro p-6 rounded-2xl border border-stone-800 space-y-3">
+                        <div class="flex items-center justify-between border-b border-stone-800 pb-2">
+                            <span class="text-xs font-mono text-amber-400 uppercase font-bold tracking-widest">DAFTAR KODE UNDANGAN AKTIF</span>
+                            <span class="text-[10px] text-stone-500 font-mono">Realtime Ledger</span>
+                        </div>
+                        <div id="admin-invite-codes-list" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                            <!-- Populated dynamically -->
                         </div>
                     </div>
                 </div>
@@ -790,6 +906,262 @@ $isWhitelisted = isWhitelisted();
             <!-- Dynamically populated via KuroApp.showCheckoutSummary() -->
         </div>
     </div>
+
+    <!-- ===================================================
+         MODAL: ADMIN PRODUCT CRUD (TAMBAH / EDIT KARYA PARFUM)
+         =================================================== -->
+    <div id="admin-product-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-kuro border border-amber-500/40 rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl space-y-6">
+            <button onclick="KuroApp.closeProductModal()" class="absolute top-5 right-5 text-stone-400 hover:text-white transition-colors z-10">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="space-y-1 border-b border-amber-500/30 pb-4">
+                <div class="flex items-center gap-2 text-amber-400 text-[10px] font-mono tracking-widest uppercase">
+                    <i data-lucide="flask-conical" class="w-3.5 h-3.5"></i>
+                    <span>ATELIER MASTER INVENTORY</span>
+                </div>
+                <h3 id="admin-product-modal-title" class="font-serif-luxury text-xl font-bold text-white">
+                    TAMBAH KARYA PARFUM BARU
+                </h3>
+                <p class="text-xs text-stone-400">
+                    Lengkapi spesifikasi mahakarya olfaktori Kuro, stok unit, harga, serta deskripsi artistik.
+                </p>
+            </div>
+
+            <form id="admin-product-form" onsubmit="KuroApp.submitProductModal(event)" class="space-y-4">
+                <input type="hidden" id="admin-prod-id" value="0">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Nama Parfum *</label>
+                        <input type="text" id="admin-prod-name" required placeholder="Contoh: KURO Kyara Oud" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Nama Kanji Jepang *</label>
+                        <input type="text" id="admin-prod-kanji" required placeholder="Contoh: 黒伽羅沈香" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none font-kanji">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-mono text-stone-400 uppercase">Subtitle / Nuansa Olfaktori Singkat *</label>
+                    <input type="text" id="admin-prod-subtitle" required placeholder="Contoh: Sacred Imperial Oud & Smoked Hinoki Resin" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Tipe Edisi *</label>
+                        <select id="admin-prod-edition-type" onchange="KuroApp.onEditionTypeChange()" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                            <option value="Series-24">Series-24 (Komersial 24 Botol)</option>
+                            <option value="1-of-1">1-of-1 (Mahakarya Tunggal Dunia)</option>
+                            <option value="Limited Reserve">Limited Reserve (Privat)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Harga (Rupiah) *</label>
+                        <input type="number" id="admin-prod-price" required min="100000" step="10000" placeholder="Contoh: 4850000" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Alokasi Stok (Unit) *</label>
+                        <input type="number" id="admin-prod-stock" required min="0" max="999" value="24" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Serial Edisi</label>
+                        <input type="text" id="admin-prod-serial" placeholder="Series 24 Edition (Limit 24 Botol)" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Volume (ml)</label>
+                        <input type="number" id="admin-prod-volume" value="50" min="10" max="500" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Status Inventaris</label>
+                        <select id="admin-prod-status" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                            <option value="available">Tersedia (Available)</option>
+                            <option value="reserved">Dipesan (Reserved)</option>
+                            <option value="acquired">Terakuisisi / Vault (Acquired)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-mono text-stone-400 uppercase">Konsentrasi Ekstrak</label>
+                    <input type="text" id="admin-prod-concentration" value="Eau de Parfum Intense (26% Concentration)" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                </div>
+
+                <!-- Visual Flacon Preset Selector -->
+                <div>
+                    <label class="text-[10px] font-mono text-stone-400 uppercase block mb-1.5">Pilih Aset Foto Flacon Mewah (Atau Ketik URL Sendiri)</label>
+                    <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-2">
+                        <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_kyara_oud.jpg')" class="group relative rounded-lg overflow-hidden border border-stone-800 hover:border-amber-400 focus:border-amber-400 transition-all aspect-square">
+                            <img src="assets/images/kuro_kyara_oud.jpg" class="w-full h-full object-cover">
+                            <span class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-amber-300 font-mono">Kyara</span>
+                        </button>
+                        <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_shogun.jpg')" class="group relative rounded-lg overflow-hidden border border-stone-800 hover:border-amber-400 focus:border-amber-400 transition-all aspect-square">
+                            <img src="assets/images/kuro_shogun.jpg" class="w-full h-full object-cover">
+                            <span class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-amber-300 font-mono">Shogun</span>
+                        </button>
+                        <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_series24_noir.jpg')" class="group relative rounded-lg overflow-hidden border border-stone-800 hover:border-amber-400 focus:border-amber-400 transition-all aspect-square">
+                            <img src="assets/images/kuro_series24_noir.jpg" class="w-full h-full object-cover">
+                            <span class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-amber-300 font-mono">Noir 24</span>
+                        </button>
+                        <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_series24_amber.jpg')" class="group relative rounded-lg overflow-hidden border border-stone-800 hover:border-amber-400 focus:border-amber-400 transition-all aspect-square">
+                            <img src="assets/images/kuro_series24_amber.jpg" class="w-full h-full object-cover">
+                            <span class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-amber-300 font-mono">Amber 24</span>
+                        </button>
+                        <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_sumi.jpg')" class="group relative rounded-lg overflow-hidden border border-stone-800 hover:border-amber-400 focus:border-amber-400 transition-all aspect-square">
+                            <img src="assets/images/kuro_sumi.jpg" class="w-full h-full object-cover">
+                            <span class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-amber-300 font-mono">Sumi</span>
+                        </button>
+                        <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_kintsugi.jpg')" class="group relative rounded-lg overflow-hidden border border-stone-800 hover:border-amber-400 focus:border-amber-400 transition-all aspect-square">
+                            <img src="assets/images/kuro_kintsugi.jpg" class="w-full h-full object-cover">
+                            <span class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-amber-300 font-mono">Kintsugi</span>
+                        </button>
+                        <button type="button" onclick="KuroApp.selectImagePreset('assets/images/kuro_yugen.jpg')" class="group relative rounded-lg overflow-hidden border border-stone-800 hover:border-amber-400 focus:border-amber-400 transition-all aspect-square">
+                            <img src="assets/images/kuro_yugen.jpg" class="w-full h-full object-cover">
+                            <span class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-amber-300 font-mono">Yūgen</span>
+                        </button>
+                    </div>
+                    <input type="text" id="admin-prod-image" required value="assets/images/kuro_series24_noir.jpg" placeholder="assets/images/... atau https://..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none font-mono">
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-mono text-stone-400 uppercase">Deskripsi Naratif Produk *</label>
+                    <textarea id="admin-prod-desc" rows="2" required placeholder="Deskripsi karakter aroma, latar belakang kreasi, dan komposisi utama..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none resize-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Filosofi Wabi-Sabi / Shibui</label>
+                        <textarea id="admin-prod-philosophy" rows="2" placeholder="Konsep estetika dan filosofi di balik formula parfum..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Keahlian Botol (Flacon Craftsmanship)</label>
+                        <textarea id="admin-prod-craftsmanship" rows="2" placeholder="Detail material kaca, tutup kuningan, atau ukiran kanji..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none resize-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Notes Pyramid -->
+                <div class="border-t border-stone-800 pt-3 space-y-3">
+                    <span class="text-[10px] font-mono text-amber-400 uppercase tracking-widest block font-bold">PIRAMIDA OLFAKTORI (PISAHKAN DENGAN KOMA)</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="text-[10px] font-mono text-stone-400 uppercase">Top Notes (Awal)</label>
+                            <input type="text" id="admin-prod-top-notes" placeholder="Bergamot, Pink Pepper" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-mono text-stone-400 uppercase">Heart Notes (Inti)</label>
+                            <input type="text" id="admin-prod-heart-notes" placeholder="Black Incense, Damask Rose" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-mono text-stone-400 uppercase">Base Notes (Pondasi)</label>
+                            <input type="text" id="admin-prod-base-notes" placeholder="Smoked Vetiver, Amber Noir" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-stone-800">
+                    <button type="button" onclick="KuroApp.closeProductModal()" class="btn-outline-gold px-4 py-2.5 rounded-xl text-xs">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-gold px-6 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                        <i data-lucide="check" class="w-4 h-4"></i>
+                        <span>SIMPAN PRODUK</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================
+         MODAL: ADMIN ORDER STATUS & FULFILLMENT TRACKER
+         =================================================== -->
+    <div id="admin-order-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-kuro border border-amber-500/40 rounded-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl space-y-6">
+            <button onclick="KuroApp.closeOrderModal()" class="absolute top-5 right-5 text-stone-400 hover:text-white transition-colors z-10">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="space-y-1 border-b border-amber-500/30 pb-4">
+                <div class="flex items-center gap-2 text-amber-400 text-[10px] font-mono tracking-widest uppercase">
+                    <i data-lucide="truck" class="w-3.5 h-3.5"></i>
+                    <span>LOGISTIK & KONFIRMASI PEMBAYARAN</span>
+                </div>
+                <h3 class="font-serif-luxury text-xl font-bold text-white">
+                    PERBARUI STATUS PESANAN
+                </h3>
+                <div id="admin-order-modal-ref" class="text-xs text-amber-300/80 font-mono">
+                    Nomor Pesanan: -
+                </div>
+            </div>
+
+            <!-- Order Brief Overview -->
+            <div id="admin-order-modal-summary" class="bg-black/40 border border-stone-800 p-3.5 rounded-xl space-y-1 text-xs">
+                <!-- Populated dynamically -->
+            </div>
+
+            <form id="admin-order-form" onsubmit="KuroApp.submitOrderModal(event)" class="space-y-4">
+                <input type="hidden" id="admin-order-id" value="0">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Status Pembayaran *</label>
+                        <select id="admin-order-payment-status" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                            <option value="checkout_review">Belum Bayar (Tahap Checkout Review)</option>
+                            <option value="pending_verification">Menunggu Verifikasi Bank</option>
+                            <option value="confirmed">Pembayaran Lunas (Terkonfirmasi)</option>
+                            <option value="completed">Transaksi Selesai & Lunas</option>
+                            <option value="cancelled">Dibatalkan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Tahap Pengiriman / Kemas *</label>
+                        <select id="admin-order-fulfillment-status" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                            <option value="menunggu">Menunggu Konfirmasi</option>
+                            <option value="dikemas">Sedang Dikemas (Packaging)</option>
+                            <option value="dikirim">Sedang Dalam Pengiriman (Shipping)</option>
+                            <option value="selesai">Barang Sudah Diterima (Delivered)</option>
+                            <option value="dibatalkan">Pengiriman Dibatalkan</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Ekspedisi / Nama Kurir</label>
+                        <input type="text" id="admin-order-courier" placeholder="Contoh: JNE Diplomatic Express / Paxel" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-mono text-stone-400 uppercase">Nomor Resi / AWB</label>
+                        <input type="text" id="admin-order-tracking" placeholder="Contoh: JNE-KURO-9988112" class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none font-mono">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-mono text-stone-400 uppercase">Catatan Pemrosesan Pengiriman</label>
+                    <textarea id="admin-order-notes" rows="2" placeholder="Contoh: Paket telah diserahkan ke agen ekspedisi SCBD, perkiraan tiba esok hari..." class="w-full bg-stone-950 border border-stone-800 focus:border-amber-400 rounded-lg px-3 py-2 text-xs text-white outline-none resize-none"></textarea>
+                </div>
+
+                <div class="p-3 bg-amber-950/20 border border-amber-500/20 rounded-xl text-[11px] text-amber-200/80 flex items-start gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                    <span>Setiap pembaruan status pengiriman dan pembayaran akan dikirimkan secara otomatis sebagai notifikasi personal ke akun pesan Concierge pembeli.</span>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-stone-800">
+                    <button type="button" onclick="KuroApp.closeOrderModal()" class="btn-outline-gold px-4 py-2.5 rounded-xl text-xs">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-gold px-6 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>SIMPAN PEMBARUAN PESANAN</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- ===================================================
          MODAL: AUTHENTICATION (LOGIN & DAFTAR AKUN)

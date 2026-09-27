@@ -14,7 +14,11 @@ const KuroApp = {
         conciergeMessages: [],
         conciergePollTimer: null,
         audioEnabled: false,
-        audioCtx: null
+        audioCtx: null,
+        adminOrders: [],
+        adminProducts: [],
+        adminActiveTab: 'orders',
+        searchDebounceTimer: null
     },
 
     init: async function() {
@@ -1701,7 +1705,7 @@ const KuroApp = {
     },
 
     // ----------------------------------------------------
-    // Admin / Kuro Atelier Desk
+    // Admin / Kuro Atelier Desk (Orders, Fulfillment, Product CRUD, Whitelist)
     // ----------------------------------------------------
     toggleAdminDesk: function() {
         this.playZenChime('chime');
@@ -1711,13 +1715,49 @@ const KuroApp = {
 
         if (section.classList.contains('hidden')) {
             section.classList.remove('hidden');
-            if (showroom) showroom.scrollIntoView({ behavior: 'smooth' });
-            this.loadAdminStats();
-            this.loadAdminApplicants();
-            this.loadAdminInviteCodes();
+            section.scrollIntoView({ behavior: 'smooth' });
+            this.refreshAdminData();
         } else {
             section.classList.add('hidden');
         }
+    },
+
+    refreshAdminData: async function() {
+        await Promise.all([
+            this.loadAdminStats(),
+            this.loadAdminOrders(),
+            this.loadAdminProducts(),
+            this.loadAdminApplicants(),
+            this.loadAdminInviteCodes()
+        ]);
+        if (window.lucide) lucide.createIcons();
+    },
+
+    switchAdminTab: function(tabName) {
+        this.state.adminActiveTab = tabName;
+        this.playZenChime('chime');
+
+        const tabs = ['orders', 'products', 'whitelist', 'invites'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`admin-tab-btn-${t}`);
+            const pane = document.getElementById(`admin-tab-pane-${t}`);
+            if (btn && pane) {
+                if (t === tabName) {
+                    btn.className = 'admin-tab-btn px-4 py-2.5 rounded-xl text-xs font-serif-luxury font-bold tracking-wider flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0 transition-all';
+                    pane.classList.remove('hidden');
+                } else {
+                    btn.className = 'admin-tab-btn px-4 py-2.5 rounded-xl text-xs font-serif-luxury font-bold tracking-wider flex items-center gap-2 text-stone-400 hover:text-white border border-transparent shrink-0 transition-all';
+                    pane.classList.add('hidden');
+                }
+            }
+        });
+
+        if (tabName === 'orders') this.loadAdminOrders();
+        else if (tabName === 'products') this.loadAdminProducts();
+        else if (tabName === 'whitelist') this.loadAdminApplicants();
+        else if (tabName === 'invites') this.loadAdminInviteCodes();
+
+        if (window.lucide) lucide.createIcons();
     },
 
     loadAdminStats: async function() {
@@ -1726,16 +1766,724 @@ const KuroApp = {
             const data = await res.json();
             if (data.success) {
                 const s = data.data;
-                document.getElementById('stat-pending-applicants').textContent = s.pending_requests;
-                document.getElementById('stat-approved-members').textContent = s.approved_members;
-                document.getElementById('stat-available-flacons').textContent = `${s.available_flacons} / ${s.total_flacons}`;
-                document.getElementById('stat-total-revenue').textContent = s.total_revenue_formatted;
+                const elOrders = document.getElementById('stat-total-orders');
+                const elFulfillment = document.getElementById('stat-pending-fulfillment');
+                const elApplicants = document.getElementById('stat-pending-applicants');
+                const elApproved = document.getElementById('stat-approved-members');
+                const elFlacons = document.getElementById('stat-available-flacons');
+                const elRev = document.getElementById('stat-total-revenue');
+
+                if (elOrders) elOrders.textContent = s.total_orders || 0;
+                if (elFulfillment) elFulfillment.textContent = s.pending_fulfillment || 0;
+                if (elApplicants) elApplicants.textContent = s.pending_requests || 0;
+                if (elApproved) elApproved.textContent = s.approved_members || 0;
+                if (elFlacons) elFlacons.textContent = `${s.available_flacons || 0} / ${s.total_flacons || 0}`;
+                if (elRev) elRev.textContent = s.total_revenue_formatted || 'Rp 0';
+
+                // Badges on tabs
+                const bOrders = document.getElementById('badge-admin-orders-count');
+                const bProds = document.getElementById('badge-admin-products-count');
+                const bWhite = document.getElementById('badge-admin-whitelist-count');
+                if (bOrders) bOrders.textContent = s.total_orders || 0;
+                if (bProds) bProds.textContent = s.total_flacons || 0;
+                if (bWhite) bWhite.textContent = s.pending_requests || 0;
+            }
+        } catch (e) {
+            console.error('Failed to load admin stats', e);
+        }
+    },
+
+    // ----------------------------------------------------
+    // Admin: Orders & Fulfillment Management
+    // ----------------------------------------------------
+    loadAdminOrders: async function() {
+        const container = document.getElementById('admin-orders-list');
+        if (!container) return;
+
+        const payFilter = document.getElementById('admin-filter-payment')?.value || '';
+        const fulFilter = document.getElementById('admin-filter-fulfillment')?.value || '';
+        const search = document.getElementById('admin-orders-search')?.value.trim() || '';
+
+        try {
+            const params = new URLSearchParams({
+                action: 'all_orders',
+                payment_status: payFilter,
+                fulfillment_status: fulFilter,
+                search: search
+            });
+            const res = await fetch(`api/orders.php?${params.toString()}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${data.message}</div>`;
+                return;
+            }
+
+            const orders = data.data.orders || [];
+            this.state.adminOrders = orders;
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-kuro p-12 text-center rounded-2xl border border-stone-800 space-y-3">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-stone-900 border border-stone-800 flex items-center justify-center text-stone-500">
+                            <i data-lucide="package-search" class="w-6 h-6"></i>
+                        </div>
+                        <h4 class="font-serif-luxury text-sm font-bold text-white">Tidak Ada Pesanan Ditemukan</h4>
+                        <p class="text-xs text-stone-500">Coba sesuaikan kata kunci pencarian atau filter status transaksi.</p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = orders.map(o => {
+                // Payment Status Styling
+                const isPaid = (o.payment_status === 'confirmed' || o.payment_status === 'completed');
+                const paymentLabel = isPaid ? 'LUNAS (TERKONFIRMASI)' : (o.payment_status === 'pending_verification' ? 'VERIFIKASI BANK' : 'BELUM DIBAYAR (REVIEW)');
+                const paymentBadgeClass = isPaid 
+                    ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50' 
+                    : 'bg-amber-950/80 text-amber-300 border-amber-500/50';
+
+                // Fulfillment Status Styling
+                const ful = o.fulfillment_status || 'menunggu';
+                let fulLabel = 'Menunggu Diproses';
+                let fulBadgeClass = 'bg-stone-900 text-stone-400 border-stone-800';
+                if (ful === 'dikemas') {
+                    fulLabel = 'Sedang Dikemas (Packaging)';
+                    fulBadgeClass = 'bg-amber-950/70 text-amber-300 border-amber-500/60 animate-pulse';
+                } else if (ful === 'dikirim') {
+                    fulLabel = 'Dalam Pengiriman (Shipping)';
+                    fulBadgeClass = 'bg-sky-950/70 text-sky-300 border-sky-500/60';
+                } else if (ful === 'selesai') {
+                    fulLabel = 'Barang Sudah Diterima';
+                    fulBadgeClass = 'bg-emerald-950/70 text-emerald-300 border-emerald-500/60';
+                } else if (ful === 'dibatalkan') {
+                    fulLabel = 'Pengiriman Dibatalkan';
+                    fulBadgeClass = 'bg-rose-950/70 text-rose-300 border-rose-500/60';
+                }
+
+                // Render items
+                const itemsHtml = (o.items || []).map(item => `
+                    <div class="flex items-center gap-3 py-2 border-b border-stone-800/60 last:border-0">
+                        <img src="${item.image_url || 'assets/images/kuro_series24_noir.jpg'}" alt="${item.product_name}" class="w-10 h-10 rounded-lg object-cover bg-stone-950 border border-stone-800 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <div class="font-serif-luxury text-xs font-bold text-white truncate">${item.product_name}</div>
+                            <div class="text-[10px] text-amber-400/80 font-mono">${item.edition_serial || ''}</div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <div class="text-xs text-white font-mono">${item.quantity} × ${item.price_formatted}</div>
+                            <div class="text-xs font-serif-luxury text-gold-gradient font-bold">${item.subtotal_formatted}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="glass-kuro p-5 rounded-2xl border border-stone-800 hover:border-amber-500/30 transition-all space-y-4">
+                        <!-- Card Top Bar -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-3">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="font-mono text-amber-300 font-bold text-xs">${o.order_number}</span>
+                                    ${o.invoice_number ? `<span class="text-[10px] font-mono text-stone-400 bg-stone-900 border border-stone-800 px-2 py-0.5 rounded">${o.invoice_number}</span>` : ''}
+                                </div>
+                                <div class="text-[11px] text-stone-500 font-mono">Dipesan pada: ${o.created_at}</div>
+                            </div>
+                            <!-- Status Badges -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-mono border ${paymentBadgeClass}">
+                                    ${paymentLabel}
+                                </span>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-mono border ${fulBadgeClass}">
+                                    ${fulLabel}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Customer & Shipping Detail -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 text-xs">
+                            <div class="md:col-span-4 space-y-1.5 bg-black/40 p-3 rounded-xl border border-stone-900">
+                                <div class="text-[10px] font-mono text-stone-400 uppercase tracking-widest font-bold">DATA PEMESAN</div>
+                                <div class="font-bold text-white text-sm">${o.client_name || 'Pembeli Kuro'}</div>
+                                <div class="text-stone-400 font-mono text-[11px]">${o.client_email}</div>
+                                <div class="text-amber-300/80 text-[11px]">${o.title_company || 'Pelanggan Terdaftar'}</div>
+                            </div>
+
+                            <div class="md:col-span-8 space-y-1.5 bg-black/40 p-3 rounded-xl border border-stone-900">
+                                <div class="text-[10px] font-mono text-stone-400 uppercase tracking-widest font-bold">ALAMAT & CATATAN PENGIRIMAN</div>
+                                <p class="text-stone-300 whitespace-pre-line leading-relaxed text-[11px]">${o.delivery_address || 'Alamat tidak dicantumkan'}</p>
+                                ${o.courier_name || o.tracking_number ? `
+                                    <div class="mt-2 pt-2 border-t border-stone-800/80 flex items-center gap-3 text-[11px]">
+                                        <span class="text-stone-400">Ekspedisi: <strong class="text-amber-300">${o.courier_name || '-'}</strong></span>
+                                        <span class="text-stone-400">Resi: <strong class="text-white font-mono bg-stone-900 px-2 py-0.5 rounded">${o.tracking_number || '-'}</strong></span>
+                                    </div>
+                                ` : ''}
+                                ${o.fulfillment_notes ? `
+                                    <div class="text-[10px] text-amber-200/80 italic mt-1">Catatan: "${o.fulfillment_notes}"</div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Items Box -->
+                        <div class="bg-stone-950/70 p-3.5 rounded-xl border border-stone-900 space-y-1">
+                            <div class="flex items-center justify-between text-[10px] font-mono text-stone-400 uppercase pb-1 border-b border-stone-900">
+                                <span>Rincian Flacon Kuro</span>
+                                <span>Jumlah & Subtotal</span>
+                            </div>
+                            ${itemsHtml}
+                            <div class="flex items-center justify-between pt-2 border-t border-stone-800 text-xs">
+                                <span class="font-mono text-stone-400">TOTAL PEMBAYARAN:</span>
+                                <span class="font-serif-luxury text-base font-bold text-gold-gradient">${o.total_formatted}</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Toolbar -->
+                        <div class="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-stone-800/80">
+                            <!-- Left: Payment Confirmation Button -->
+                            <div class="flex items-center gap-2">
+                                ${!isPaid ? `
+                                    <button onclick="KuroApp.quickUpdateOrderPayment(${o.id}, 'confirmed')" class="btn-gold px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md">
+                                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                                        <span>Konfirmasi Pembayaran Lunas</span>
+                                    </button>
+                                ` : `
+                                    <button onclick="KuroApp.quickUpdateOrderPayment(${o.id}, 'checkout_review')" class="btn-outline-gold px-3 py-1.5 rounded-lg text-xs text-stone-400 hover:text-white flex items-center gap-1.5">
+                                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                                        <span>Tandai Belum Lunas</span>
+                                    </button>
+                                `}
+                                ${o.invoice_number ? `
+                                    <button onclick="KuroApp.viewOrderInvoiceFromAdmin(${o.id})" class="glass-kuro px-3 py-1.5 rounded-lg text-xs text-amber-300 border border-stone-800 hover:border-amber-400 flex items-center gap-1">
+                                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                                        <span>Buka Invoice</span>
+                                    </button>
+                                ` : ''}
+                            </div>
+
+                            <!-- Right: Fulfillment Lifecycle Steps -->
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="text-[10px] font-mono text-stone-500 uppercase mr-1">Status Kirim:</span>
+                                <button onclick="KuroApp.quickUpdateOrderFulfillment(${o.id}, 'dikemas')" title="Tandai Sedang Dikemas" class="px-2.5 py-1.5 rounded-lg text-[11px] font-mono border transition-all ${
+                                    ful === 'dikemas' ? 'bg-amber-500/25 text-amber-300 border-amber-500 font-bold' : 'bg-stone-900 text-stone-400 border-stone-800 hover:text-white'
+                                }">
+                                    📦 Dikemas
+                                </button>
+                                <button onclick="KuroApp.promptShipOrder(${o.id})" title="Input Ekspedisi & No. Resi" class="px-2.5 py-1.5 rounded-lg text-[11px] font-mono border transition-all ${
+                                    ful === 'dikirim' ? 'bg-sky-500/25 text-sky-300 border-sky-500 font-bold' : 'bg-stone-900 text-stone-400 border-stone-800 hover:text-white'
+                                }">
+                                    🚚 Kirim (Resi)
+                                </button>
+                                <button onclick="KuroApp.quickUpdateOrderFulfillment(${o.id}, 'selesai')" title="Tandai Barang Diterima Pelanggan" class="px-2.5 py-1.5 rounded-lg text-[11px] font-mono border transition-all ${
+                                    ful === 'selesai' ? 'bg-emerald-500/25 text-emerald-300 border-emerald-500 font-bold' : 'bg-stone-900 text-stone-400 border-stone-800 hover:text-white'
+                                }">
+                                    ✅ Diterima
+                                </button>
+                                <button onclick="KuroApp.openOrderModal(${o.id})" title="Buka Pengaturan Lengkap" class="px-2.5 py-1.5 rounded-lg text-[11px] font-mono bg-stone-900 text-amber-300 border border-stone-800 hover:border-amber-400 flex items-center gap-1">
+                                    <i data-lucide="sliders" class="w-3 h-3"></i>
+                                    <span>Detail</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (window.lucide) lucide.createIcons();
+        } catch (e) {
+            console.error('Failed to load admin orders', e);
+            container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">Gagal memuat daftar pesanan website.</div>`;
+        }
+    },
+
+    applyOrdersFilter: function() {
+        this.loadAdminOrders();
+    },
+
+    debounceOrdersSearch: function() {
+        clearTimeout(this.state.searchDebounceTimer);
+        this.state.searchDebounceTimer = setTimeout(() => {
+            this.loadAdminOrders();
+        }, 300);
+    },
+
+    quickUpdateOrderPayment: async function(orderId, newPaymentStatus) {
+        this.playZenChime('chime');
+        try {
+            const res = await fetch('api/orders.php?action=update_order_status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: orderId, payment_status: newPaymentStatus })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.playZenChime('bell');
+                this.showToast(data.message, 'success');
+                await this.loadAdminOrders();
+                await this.loadAdminStats();
+            } else {
+                this.showToast(data.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            this.showToast('Gagal memperbarui status pembayaran.', 'error');
+        }
+    },
+
+    quickUpdateOrderFulfillment: async function(orderId, newFulfillmentStatus) {
+        this.playZenChime('chime');
+        try {
+            const res = await fetch('api/orders.php?action=update_order_status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: orderId, fulfillment_status: newFulfillmentStatus })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.playZenChime('bell');
+                this.showToast(data.message, 'success');
+                await this.loadAdminOrders();
+                await this.loadAdminStats();
+            } else {
+                this.showToast(data.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            this.showToast('Gagal memperbarui status pengiriman.', 'error');
+        }
+    },
+
+    promptShipOrder: function(orderId) {
+        this.openOrderModal(orderId, 'dikirim');
+    },
+
+    openOrderModal: function(orderId, defaultFulfillment = null) {
+        const order = this.state.adminOrders.find(o => o.id == orderId);
+        if (!order) return;
+
+        const modal = document.getElementById('admin-order-modal');
+        const refEl = document.getElementById('admin-order-modal-ref');
+        const sumEl = document.getElementById('admin-order-modal-summary');
+
+        document.getElementById('admin-order-id').value = order.id;
+        document.getElementById('admin-order-payment-status').value = order.payment_status || 'checkout_review';
+        document.getElementById('admin-order-fulfillment-status').value = defaultFulfillment || (order.fulfillment_status || 'menunggu');
+        document.getElementById('admin-order-courier').value = order.courier_name || '';
+        document.getElementById('admin-order-tracking').value = order.tracking_number || '';
+        document.getElementById('admin-order-notes').value = order.fulfillment_notes || '';
+
+        if (refEl) {
+            refEl.textContent = `Pesanan #${order.order_number} ${order.invoice_number ? '• ' + order.invoice_number : ''}`;
+        }
+        if (sumEl) {
+            sumEl.innerHTML = `
+                <div class="flex items-center justify-between text-white font-medium">
+                    <span>${order.client_name} (${order.client_email})</span>
+                    <span class="font-serif-luxury text-gold-gradient font-bold">${order.total_formatted}</span>
+                </div>
+                <div class="text-stone-400 text-[11px] truncate">${order.delivery_address || '-'}</div>
+            `;
+        }
+
+        if (modal) modal.classList.remove('hidden');
+        if (defaultFulfillment === 'dikirim') {
+            document.getElementById('admin-order-courier')?.focus();
+        }
+        if (window.lucide) lucide.createIcons();
+    },
+
+    closeOrderModal: function() {
+        const modal = document.getElementById('admin-order-modal');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    submitOrderModal: async function(e) {
+        if (e) e.preventDefault();
+        const orderId = document.getElementById('admin-order-id').value;
+        const payStatus = document.getElementById('admin-order-payment-status').value;
+        const fulStatus = document.getElementById('admin-order-fulfillment-status').value;
+        const courier = document.getElementById('admin-order-courier').value.trim();
+        const tracking = document.getElementById('admin-order-tracking').value.trim();
+        const notes = document.getElementById('admin-order-notes').value.trim();
+
+        try {
+            const res = await fetch('api/orders.php?action=update_order_status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    payment_status: payStatus,
+                    fulfillment_status: fulStatus,
+                    courier_name: courier,
+                    tracking_number: tracking,
+                    fulfillment_notes: notes
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.playZenChime('bell');
+                this.closeOrderModal();
+                this.showToast(data.message, 'success');
+                await this.loadAdminOrders();
+                await this.loadAdminStats();
+            } else {
+                this.showToast(data.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            this.showToast('Gagal memperbarui pesanan.', 'error');
+        }
+    },
+
+    viewOrderInvoiceFromAdmin: function(orderId) {
+        const order = this.state.adminOrders.find(o => o.id == orderId);
+        if (!order) return;
+
+        const formattedOrderData = {
+            order_number: order.order_number,
+            invoice_number: order.invoice_number,
+            invoice_hash: order.invoice_hash || 'KURO-OFFICIAL-PROOF',
+            issued_at: order.created_at,
+            total_amount: order.total_amount,
+            total_formatted: order.total_formatted,
+            subtotal_formatted: order.total_formatted,
+            recipient_name: order.client_name,
+            recipient_phone: '',
+            delivery_address: order.delivery_address,
+            order_notes: order.custom_engraving || order.fulfillment_notes || '',
+            items: (order.items || []).map(it => ({
+                id: it.product_id,
+                name: it.product_name,
+                edition_serial: it.edition_serial,
+                price: it.price_per_item,
+                price_formatted: it.price_formatted,
+                quantity: it.quantity,
+                subtotal: it.subtotal,
+                subtotal_formatted: it.subtotal_formatted,
+                image_url: it.image_url
+            }))
+        };
+        this.showCheckoutSummary(formattedOrderData);
+    },
+
+    // ----------------------------------------------------
+    // Admin: Product CRUD (Create, Read, Update, Delete & Stock)
+    // ----------------------------------------------------
+    loadAdminProducts: async function() {
+        const container = document.getElementById('admin-products-list');
+        if (!container) return;
+
+        try {
+            const res = await fetch('api/products.php?action=admin_list');
+            const data = await res.json();
+
+            if (!data.success) {
+                container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">${data.message}</div>`;
+                return;
+            }
+
+            const products = data.data.products || [];
+            this.state.adminProducts = products;
+
+            if (products.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-kuro p-12 text-center rounded-2xl border border-stone-800 space-y-3">
+                        <div class="w-12 h-12 mx-auto rounded-full bg-stone-900 border border-stone-800 flex items-center justify-center text-stone-500">
+                            <i data-lucide="flask-conical" class="w-6 h-6"></i>
+                        </div>
+                        <h4 class="font-serif-luxury text-sm font-bold text-white">Belum Ada Karya dalam Katalog</h4>
+                        <p class="text-xs text-stone-500">Klik tombol "+ Tambah Produk Baru" di atas untuk menambahkan koleksi pertama.</p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = products.map(p => {
+                const isSeries24 = (p.edition_type === 'Series-24');
+                const badgeEdition = isSeries24 
+                    ? 'bg-amber-950/80 text-amber-300 border-amber-500/50' 
+                    : (p.edition_type === '1-of-1' ? 'bg-stone-900 text-gold-gradient border-gold-subtle' : 'bg-stone-900 text-stone-300 border-stone-700');
+
+                let statusBadge = 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50';
+                let statusLabel = 'Tersedia';
+                if (p.status === 'reserved') {
+                    statusBadge = 'bg-amber-950/80 text-amber-300 border-amber-500/50';
+                    statusLabel = 'Dipesan';
+                } else if (p.status === 'acquired') {
+                    statusBadge = 'bg-stone-900 text-stone-400 border-stone-800';
+                    statusLabel = 'Terakuisisi (Vault)';
+                }
+
+                return `
+                    <div class="glass-kuro p-4 rounded-2xl border border-stone-800 hover:border-amber-500/30 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <img src="${p.image_url || 'assets/images/kuro_series24_noir.jpg'}" alt="${p.name}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover bg-stone-950 border border-stone-800 shrink-0">
+                            <div class="space-y-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h4 class="font-serif-luxury text-sm sm:text-base font-bold text-white truncate">${p.name}</h4>
+                                    <span class="text-xs font-kanji text-amber-400/80">${p.japanese_name || ''}</span>
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${badgeEdition}">${p.edition_type}</span>
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${statusBadge}">${statusLabel}</span>
+                                </div>
+                                <div class="text-xs text-stone-400 font-light truncate">${p.subtitle || ''}</div>
+                                <div class="flex flex-wrap items-center gap-4 text-xs font-mono pt-0.5">
+                                    <span class="text-gold-gradient font-serif-luxury font-bold text-sm">${p.price_formatted}</span>
+                                    <span class="text-stone-500">•</span>
+                                    <span class="text-stone-300">${p.volume_ml}ml (${p.concentration || 'EDP'})</span>
+                                    <span class="text-stone-500">•</span>
+                                    <span class="text-amber-200/90">${p.edition_serial || ''}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stock Controls & Action Buttons -->
+                        <div class="flex flex-wrap items-center justify-between md:justify-end gap-4 w-full md:w-auto shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-stone-800">
+                            <!-- Stock Quick Stepper -->
+                            <div class="flex items-center gap-2 bg-stone-950 border border-stone-800 rounded-xl px-2.5 py-1.5">
+                                <span class="text-[10px] font-mono text-stone-400 uppercase">Stok:</span>
+                                <button onclick="KuroApp.quickAdjustStock(${p.id}, -1)" title="Kurangi Stok" class="w-6 h-6 rounded bg-stone-900 hover:bg-stone-800 text-stone-300 flex items-center justify-center text-xs font-mono">-</button>
+                                <span class="font-mono text-white text-xs font-bold w-7 text-center">${p.stock}</span>
+                                <button onclick="KuroApp.quickAdjustStock(${p.id}, 1)" title="Tambah Stok" class="w-6 h-6 rounded bg-stone-900 hover:bg-stone-800 text-stone-300 flex items-center justify-center text-xs font-mono">+</button>
+                            </div>
+
+                            <!-- Edit and Delete Buttons -->
+                            <div class="flex items-center gap-2">
+                                <button onclick="KuroApp.openProductModal(${p.id})" class="btn-gold px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                    <span>Edit</span>
+                                </button>
+                                <button onclick="KuroApp.deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')" class="btn-outline-gold px-3 py-1.5 rounded-xl text-xs text-rose-400 hover:border-rose-400 hover:text-rose-300 flex items-center gap-1.5">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    <span>Hapus</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (window.lucide) lucide.createIcons();
+        } catch (e) {
+            console.error('Failed to load admin products', e);
+            container.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs">Gagal memuat inventaris produk.</div>`;
+        }
+    },
+
+    openProductModal: function(productId = 0) {
+        const modal = document.getElementById('admin-product-modal');
+        const titleEl = document.getElementById('admin-product-modal-title');
+        if (!modal) return;
+
+        if (productId === 0) {
+            // New Product
+            if (titleEl) titleEl.textContent = 'TAMBAH KARYA PARFUM BARU';
+            document.getElementById('admin-prod-id').value = '0';
+            document.getElementById('admin-prod-name').value = '';
+            document.getElementById('admin-prod-kanji').value = '';
+            document.getElementById('admin-prod-subtitle').value = '';
+            document.getElementById('admin-prod-edition-type').value = 'Series-24';
+            document.getElementById('admin-prod-serial').value = 'Series 24 Edition (Limit 24 Botol)';
+            document.getElementById('admin-prod-price').value = '4850000';
+            document.getElementById('admin-prod-stock').value = '24';
+            document.getElementById('admin-prod-volume').value = '50';
+            document.getElementById('admin-prod-concentration').value = 'Eau de Parfum Intense (26% Concentration)';
+            document.getElementById('admin-prod-status').value = 'available';
+            document.getElementById('admin-prod-image').value = 'assets/images/kuro_kyara_oud.jpg';
+            document.getElementById('admin-prod-desc').value = '';
+            document.getElementById('admin-prod-philosophy').value = '';
+            document.getElementById('admin-prod-craftsmanship').value = '';
+            document.getElementById('admin-prod-top-notes').value = '';
+            document.getElementById('admin-prod-heart-notes').value = '';
+            document.getElementById('admin-prod-base-notes').value = '';
+        } else {
+            // Edit Product
+            const p = this.state.adminProducts.find(item => item.id == productId);
+            if (!p) return;
+
+            if (titleEl) titleEl.textContent = `EDIT KARYA: ${p.name.toUpperCase()}`;
+            document.getElementById('admin-prod-id').value = p.id;
+            document.getElementById('admin-prod-name').value = p.name || '';
+            document.getElementById('admin-prod-kanji').value = p.japanese_name || '';
+            document.getElementById('admin-prod-subtitle').value = p.subtitle || '';
+            document.getElementById('admin-prod-edition-type').value = p.edition_type || 'Series-24';
+            document.getElementById('admin-prod-serial').value = p.edition_serial || '';
+            document.getElementById('admin-prod-price').value = p.price_raw || p.price || '';
+            document.getElementById('admin-prod-stock').value = p.stock || 0;
+            document.getElementById('admin-prod-volume').value = p.volume_ml || 50;
+            document.getElementById('admin-prod-concentration').value = p.concentration || '';
+            document.getElementById('admin-prod-status').value = p.status || 'available';
+            document.getElementById('admin-prod-image').value = p.image_url || 'assets/images/kuro_series24_noir.jpg';
+            document.getElementById('admin-prod-desc').value = p.description || '';
+            document.getElementById('admin-prod-philosophy').value = p.philosophy || '';
+            document.getElementById('admin-prod-craftsmanship').value = p.flacon_craftsmanship || '';
+
+            // Extract notes
+            const topStr = (p.notes?.top || []).map(n => n.note_name).join(', ');
+            const heartStr = (p.notes?.heart || []).map(n => n.note_name).join(', ');
+            const baseStr = (p.notes?.base || []).map(n => n.note_name).join(', ');
+            document.getElementById('admin-prod-top-notes').value = topStr;
+            document.getElementById('admin-prod-heart-notes').value = heartStr;
+            document.getElementById('admin-prod-base-notes').value = baseStr;
+        }
+
+        modal.classList.remove('hidden');
+        document.getElementById('admin-prod-name')?.focus();
+        if (window.lucide) lucide.createIcons();
+    },
+
+    closeProductModal: function() {
+        const modal = document.getElementById('admin-product-modal');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    onEditionTypeChange: function() {
+        const type = document.getElementById('admin-prod-edition-type')?.value;
+        const stockInput = document.getElementById('admin-prod-stock');
+        const serialInput = document.getElementById('admin-prod-serial');
+
+        if (type === 'Series-24') {
+            if (stockInput) stockInput.value = '24';
+            if (serialInput) serialInput.value = 'Series 24 Edition (Limit 24 Botol)';
+        } else if (type === '1-of-1') {
+            if (stockInput) stockInput.value = '1';
+            if (serialInput) serialInput.value = '#KURO-00' + Math.floor(Math.random() * 90 + 10) + '/01 (1 of 1 Global Edition)';
+        } else {
+            if (stockInput) stockInput.value = '5';
+            if (serialInput) serialInput.value = 'Limited Reserve Atelier Edition';
+        }
+    },
+
+    selectImagePreset: function(url) {
+        const imgInput = document.getElementById('admin-prod-image');
+        if (imgInput) {
+            imgInput.value = url;
+            this.showToast('Foto flacon dipilih: ' + url.split('/').pop(), 'info');
+        }
+    },
+
+    submitProductModal: async function(e) {
+        if (e) e.preventDefault();
+        const id = parseInt(document.getElementById('admin-prod-id').value) || 0;
+        const name = document.getElementById('admin-prod-name').value.trim();
+        const kanji = document.getElementById('admin-prod-kanji').value.trim();
+        const subtitle = document.getElementById('admin-prod-subtitle').value.trim();
+        const editionType = document.getElementById('admin-prod-edition-type').value;
+        const serial = document.getElementById('admin-prod-serial').value.trim();
+        const price = parseFloat(document.getElementById('admin-prod-price').value) || 0;
+        const stock = parseInt(document.getElementById('admin-prod-stock').value) || 0;
+        const volume = parseInt(document.getElementById('admin-prod-volume').value) || 50;
+        const concentration = document.getElementById('admin-prod-concentration').value.trim();
+        const status = document.getElementById('admin-prod-status').value;
+        const image = document.getElementById('admin-prod-image').value.trim();
+        const desc = document.getElementById('admin-prod-desc').value.trim();
+        const philosophy = document.getElementById('admin-prod-philosophy').value.trim();
+        const craftsmanship = document.getElementById('admin-prod-craftsmanship').value.trim();
+        const topNotes = document.getElementById('admin-prod-top-notes').value.trim();
+        const heartNotes = document.getElementById('admin-prod-heart-notes').value.trim();
+        const baseNotes = document.getElementById('admin-prod-base-notes').value.trim();
+
+        if (!name || price <= 0 || !desc) {
+            this.showToast('Nama, deskripsi, dan harga produk wajib diisi.', 'error');
+            return;
+        }
+
+        const payload = {
+            id: id,
+            name: name,
+            japanese_name: kanji,
+            subtitle: subtitle,
+            edition_type: editionType,
+            edition_serial: serial,
+            price: price,
+            stock: stock,
+            volume_ml: volume,
+            concentration: concentration,
+            status: status,
+            image_url: image,
+            description: desc,
+            philosophy: philosophy,
+            flacon_craftsmanship: craftsmanship,
+            top_notes: topNotes ? topNotes.split(',').map(s => s.trim()).filter(Boolean) : [],
+            heart_notes: heartNotes ? heartNotes.split(',').map(s => s.trim()).filter(Boolean) : [],
+            base_notes: baseNotes ? baseNotes.split(',').map(s => s.trim()).filter(Boolean) : []
+        };
+
+        const action = (id > 0) ? 'update' : 'create';
+        try {
+            const res = await fetch(`api/products.php?action=${action}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.playZenChime('bell');
+                this.closeProductModal();
+                this.showToast(data.message, 'success');
+                await this.loadAdminProducts();
+                await this.loadProducts(); // Update public showroom catalog
+                await this.loadAdminStats();
+            } else {
+                this.showToast(data.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            this.showToast('Gagal menyimpan produk.', 'error');
+        }
+    },
+
+    deleteProduct: async function(productId, productName) {
+        if (!confirm(`Apakah Anda yakin ingin menghapus karya '${productName}' dari inventaris Kuro Atelier?`)) {
+            return;
+        }
+        this.playZenChime('chime');
+
+        try {
+            const res = await fetch('api/products.php?action=delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: productId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.showToast(data.message, 'success');
+                await this.loadAdminProducts();
+                await this.loadProducts();
+                await this.loadAdminStats();
+            } else {
+                this.showToast(data.message, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            this.showToast('Gagal menghapus produk.', 'error');
+        }
+    },
+
+    quickAdjustStock: async function(productId, delta) {
+        const p = this.state.adminProducts.find(item => item.id == productId);
+        if (!p) return;
+
+        const newStock = Math.max(0, (parseInt(p.stock) || 0) + delta);
+        try {
+            const res = await fetch('api/products.php?action=update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: productId, stock: newStock })
+            });
+            const data = await res.json();
+            if (data.success) {
+                p.stock = newStock;
+                this.showToast(`Stok '${p.name}' diperbarui: ${newStock} unit`, 'info');
+                await this.loadAdminProducts();
+                await this.loadProducts();
             }
         } catch (e) {
             console.error(e);
         }
     },
 
+    // ----------------------------------------------------
+    // Admin: Whitelist Curation
+    // ----------------------------------------------------
     loadAdminApplicants: async function() {
         const container = document.getElementById('admin-applicants-table');
         if (!container) return;
@@ -1770,7 +2518,7 @@ const KuroApp = {
                         ` : `<span class="text-xs text-stone-500 font-mono">Ditinjau</span>`}
                     </div>
                 `).join('');
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         } catch (e) {
             console.error(e);
@@ -1788,14 +2536,17 @@ const KuroApp = {
             const data = await res.json();
             if (data.success) {
                 this.showToast(data.message, 'success');
-                this.loadAdminApplicants();
-                this.loadAdminStats();
+                await this.loadAdminApplicants();
+                await this.loadAdminStats();
             }
         } catch (e) {
             console.error(e);
         }
     },
 
+    // ----------------------------------------------------
+    // Admin: VIP Invite Codes
+    // ----------------------------------------------------
     loadAdminInviteCodes: async function() {
         const container = document.getElementById('admin-invite-codes-list');
         if (!container) return;

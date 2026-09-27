@@ -1,7 +1,7 @@
 <?php
 // ===================================================
 // Kuro Atelier - Admin / Creator Desk API
-// Statistics, Atelier Vault, and VIP Invite Codes
+// Statistics, Atelier Vault, Orders Summary and VIP Invite Codes
 // ===================================================
 
 require_once __DIR__ . '/../config/database.php';
@@ -24,7 +24,13 @@ switch ($action) {
         $availableFlacons = (int)$db->query("SELECT COUNT(*) FROM products WHERE status = 'available'")->fetchColumn();
         $acquiredFlacons = (int)$db->query("SELECT COUNT(*) FROM products WHERE status = 'acquired'")->fetchColumn();
 
-        // Revenue
+        // Orders & Fulfillment Counts
+        $totalOrders = (int)$db->query("SELECT COUNT(*) FROM orders")->fetchColumn();
+        $pendingFulfillment = (int)$db->query("SELECT COUNT(*) FROM orders WHERE fulfillment_status IN ('menunggu', 'dikemas', 'dikirim')")->fetchColumn();
+        $unpaidOrders = (int)$db->query("SELECT COUNT(*) FROM orders WHERE payment_status IN ('checkout_review', 'pending_verification')")->fetchColumn();
+        $paidOrders = (int)$db->query("SELECT COUNT(*) FROM orders WHERE payment_status IN ('confirmed', 'completed')")->fetchColumn();
+
+        // Revenue (only from confirmed/completed orders)
         $totalRevenue = (float)$db->query("SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE payment_status = 'confirmed' OR payment_status = 'completed'")->fetchColumn();
 
         // Unread messages
@@ -36,6 +42,10 @@ switch ($action) {
             'total_flacons' => $totalFlacons,
             'available_flacons' => $availableFlacons,
             'acquired_flacons' => $acquiredFlacons,
+            'total_orders' => $totalOrders,
+            'pending_fulfillment' => $pendingFulfillment,
+            'unpaid_orders' => $unpaidOrders,
+            'paid_orders' => $paidOrders,
             'total_revenue' => $totalRevenue,
             'total_revenue_formatted' => formatRupiah($totalRevenue),
             'unread_messages' => $unreadMessages
