@@ -79,6 +79,11 @@ function isWhitelisted(): bool {
     return ($user['role'] === 'kuro_admin' || $user['membership_status'] === 'approved');
 }
 
+function isAdmin(): bool {
+    $user = getCurrentUser();
+    return ($user && $user['role'] === 'kuro_admin');
+}
+
 function formatRupiah(float $amount): string {
     return 'Rp ' . number_format($amount, 0, ',', '.');
 }

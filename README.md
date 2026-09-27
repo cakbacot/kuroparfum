@@ -176,35 +176,54 @@ Jika Anda mendaftar akun baru dan ingin langsung mendapatkan status VIP Whitelis
 
 ---
 
-## 🧪 6. Panduan Cepat Ujicoba Fitur (Step-by-Step)
+## 🗺️ 6. Arsitektur Multi-Page & Sitemap
+Platform kini telah dirapikan menjadi struktur multi-halaman terpisah untuk mencegah scroll berkepanjangan dan memberikan pengalaman navigasi eksekutif:
 
-### Ujicoba 1: Tambah ke Keranjang Tanpa Hambatan Login (Seamless Cart)
+| Halaman | URL | Fungsi & Fitur Utama |
+|---|---|---|
+| **Beranda** | [`index.php`](http://127.0.0.1:8000/index.php) | Teaser visual beresolusi tinggi, pintu masuk ruang pamer, ringkasan filosofi Shibui, dan gerbang akses VIP. |
+| **Ruang Pamer (Showroom)** | [`koleksi.php`](http://127.0.0.1:8000/koleksi.php) | Katalog lengkap karya 1-of-1 Bespoke & Series 24, piramida olfaktori 3 tingkat, filter instan, dan keranjang belanja. |
+| **Filosofi & Seni** | [`filosofi.php`](http://127.0.0.1:8000/filosofi.php) | 4 Pilar Craftsmanship: Kayu Kyara 300 Tahun, Kristal Obsidian Hitam, Ukiran Emas 24K, dan Cap Segel Hanko. |
+| **Akses VIP** | [`whitelist.php`](http://127.0.0.1:8000/whitelist.php) | Portal penebusan kode undangan 12 digit instan dan formulir pengajuan kurasi identitas calon kolektor. |
+| **Verifikasi COA** | [`verifikasi.php`](http://127.0.0.1:8000/verifikasi.php) | Mesin pelacak keaslian sertifikat digital COA dunia berdasarkan hash kriptografis SHA-256 dan nomor seri arsip. |
+| **Portal Kolektor** | [`kolektor.php`](http://127.0.0.1:8000/kolektor.php) | Riwayat pesanan kolektor, pelacak status pengiriman 4 tahap (Menunggu -> Dikemas -> Dikirim -> Diterima), dan Direct Concierge. |
+| **Kuro Master Desk (Admin)** | [`admin.php`](http://127.0.0.1:8000/admin.php) | **Halaman admin mandiri khusus Kuro Master**: Dashboard KPI, Manajemen Pesanan & Pelacakan Pengiriman (Fulfillment), CRUD Produk Lengkap, Kurasi Whitelist, dan Generator Kode Undangan VIP. *(Terproteksi hak akses kuro_admin)* |
+
+---
+
+## 🧪 7. Panduan Cepat Ujicoba Fitur (Step-by-Step)
+
+### Ujicoba 1: Halaman Admin Khusus Kuro Master (`admin.php`)
 1. Buka website di [**http://127.0.0.1:8000**](http://127.0.0.1:8000).
-2. Gulir ke bawah menuju **Ruang Pamer Privat (Showroom)**.
-3. Klik tab filter **`KURO SERIES 24 (LIMIT 24 BOTOL)`**.
-4. Klik tombol **`+ KERANJANG`** pada produk *KURO Noir* atau *KURO Hinoki Amber*.
-5. **Hasil:** Item langsung berhasil masuk ke keranjang belanja (drawer samping kanan terbuka secara otomatis) **tanpa pop-up yang memaksa Anda harus login terlebih dahulu**.
+2. Klik tombol **`MASUK`** di navigasi atas.
+3. Masuk dengan akun Kuro Master:
+   - Email: **`kuro@atelier.com`**
+   - Password: **`password123`**
+4. Setelah masuk, klik tombol **`KURO DESK (ADMIN)`** berwarna emas berdenyut di navigasi atas.
+5. Anda akan langsung diarahkan ke halaman khusus **[`admin.php`](http://127.0.0.1:8000/admin.php)**:
+   - **Tab 1: Pesanan & Pengiriman (Fulfillment):** Periksa pesanan masuk, konfirmasi pembayaran lunas, ubah status kirim (*Dikemas / Input Resi / Diterima*), buka invoice resmi.
+   - **Tab 2: Katalog Produk (CRUD):** Tambah parfum baru (+ modal lengkap), sesuaikan stok dengan stepper (+/-), edit formula & piramida olfaktori, atau hapus karya.
+   - **Tab 3: Kurasi Whitelist:** Setujui atau tolak permohonan calon pembeli VIP.
+   - **Tab 4: Kode Undangan VIP:** Terbitkan kode undangan kustom dengan kuota pemakaian.
 
-### Ujicoba 2: Checkout & Penerbitan Bukti Invoice Resmi
+### Ujicoba 2: Tambah ke Keranjang Tanpa Hambatan Login (Seamless Cart)
+1. Buka **Ruang Pamer** di [**http://127.0.0.1:8000/koleksi.php**](http://127.0.0.1:8000/koleksi.php).
+2. Klik tab filter **`KURO SERIES 24 (LIMIT 24 BOTOL)`**.
+3. Klik tombol **`+ KERANJANG`** pada produk *KURO Noir* atau *KURO Hinoki Amber*.
+4. **Hasil:** Item langsung berhasil masuk ke keranjang belanja (drawer samping kanan terbuka secara otomatis) **tanpa pop-up yang memaksa Anda harus login terlebih dahulu**.
+
+### Ujicoba 3: Checkout & Penerbitan Bukti Invoice Resmi
 1. Pada drawer keranjang belanja, klik **`LANJUT KE CHECKOUT REVIEW`**.
 2. Lengkapi formulir pengiriman: Nama Penerima, Nomor WhatsApp, Alamat Pengiriman, dan Catatan (opsional).
 3. Klik tombol **`SELESAIKAN CHECKOUT`**.
 4. **Hasil:**
    - Transaksi selesai pada tahap checkout (tanpa pemilihan metode pembayaran per ketentuan).
-   - Dokumen **Bukti Invoice Pesanan Resmi** langsung diterbitkan di layar modal:
-     - Nomor Faktur Resmi (contoh: `INV/KURO-20260927-XXXXXX`)
-     - Nomor Referensi Pesanan (`KURO-ORD-2026-XXXXXX`)
-     - Waktu Terbit & Status Alokasi Terkunci
-     - Rincian Tabel Produk Itemized (Foto, Nama, Kanji, Batch, Volume 50ML, Harga, Subtotal)
-     - Segel Merah Tradisional Jepang (**黒工房印 / Hanko Inkan**)
-     - Sidik Jari Kriptografis **SHA-256 Fingerprint**
-     - Tombol **"Cetak / Simpan PDF"** (siap cetak A4 / simpan PDF rapi)
-     - Tombol **"Salin No. Invoice"**
+   - Dokumen **Bukti Invoice Pesanan Resmi** langsung diterbitkan di layar modal dengan segel Hanko Inkan dan sidik jari SHA-256.
 
-### Ujicoba 3: Autentikasi Pengguna & Portal Kolektor
-- Klik tombol **`MASUK`** di navigasi atas.
-- Masuk dengan email & password akun:
-  * **Kuro Master (Admin):** `kuro@atelier.com` / `password123`
-  * **Tanaka (VIP Whitelist):** `tanaka@executives.co.jp` / `password123`
-  * **Akun Anggota:** `gratis@kuro.com` / `password123`
-- Setelah login, antarmuka otomatis menyesuaikan hak akses pengguna.
+### Ujicoba 4: Portal Anggota Kolektor & Pelacakan Pengiriman
+1. Masuk dengan akun Tanaka: `tanaka@executives.co.jp` / `password123`
+2. Kunjungi halaman **Portal Saya** di [**http://127.0.0.1:8000/kolektor.php**](http://127.0.0.1:8000/kolektor.php).
+3. Anda dapat melihat:
+   - **Stepper Pelacakan Pengiriman Real-Time:** Menunggu Konfirmasi -> Sedang Dikemas -> Dalam Pengiriman (dilengkapi nama kurir & nomor resi) -> Barang Diterima.
+   - Saluran **Direct Concierge 1-on-1** langsung dengan Kuro.
+   - Brankas Sertifikat Keaslian COA.

@@ -122,15 +122,23 @@ const KuroApp = {
             const isKuro = user.role === 'kuro_admin';
             const isApproved = user.membership_status === 'approved';
             
-            const isFree = user.email === 'gratis@kuro.com';
-            let statusColor = isKuro ? 'text-amber-300 border-amber-500/50 bg-amber-950/30' : (isFree ? 'text-sky-300 border-sky-500/50 bg-sky-950/30' : (isApproved ? 'text-emerald-300 border-emerald-500/50 bg-emerald-950/30' : 'text-stone-300 border-stone-700 bg-stone-900'));
-            let statusText = isKuro ? 'KURO MASTER' : (isFree ? 'AKUN GRATIS' : (isApproved ? 'SOVEREIGN VIP' : 'MEMBER MASUK'));
+            let statusColor = isKuro ? 'text-amber-300 border-amber-500/50 bg-amber-950/30' : (isApproved ? 'text-emerald-300 border-emerald-500/50 bg-emerald-950/30' : 'text-stone-300 border-stone-700 bg-stone-900');
+            let statusText = isKuro ? 'KURO MASTER' : (isApproved ? 'SOVEREIGN VIP' : 'ANGGOTA');
 
             badgeEl.innerHTML = `
                 <div class="flex items-center gap-2 border ${statusColor} px-3 py-1.5 rounded-full text-xs tracking-wider">
                     <span class="w-2 h-2 rounded-full ${isApproved || isKuro ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}"></span>
-                    <span class="font-semibold text-white">${user.name.split(' ')[0]}</span>
+                    <a href="kolektor.php" class="font-semibold text-white hover:text-amber-300 transition-colors" title="Buka Portal Saya">${user.name.split(' ')[0]}</a>
                     <span class="text-[10px] opacity-75 font-mono">(${statusText})</span>
+                    ${isKuro ? `
+                        <a href="admin.php" title="Panel Kurasi Admin" class="ml-1 text-amber-400 hover:text-amber-200 transition-colors">
+                            <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+                        </a>
+                    ` : `
+                        <a href="kolektor.php" title="Portal Kolektor" class="ml-1 text-stone-400 hover:text-white transition-colors">
+                            <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                        </a>
+                    `}
                     <button onclick="KuroApp.logout()" title="Keluar Sesi" class="ml-1 text-stone-400 hover:text-rose-400 transition-colors">
                         <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
                     </button>
@@ -144,13 +152,13 @@ const KuroApp = {
         } else {
             badgeEl.innerHTML = `
                 <div class="flex items-center gap-2">
-                    <button onclick="KuroApp.openLoginModal()" class="text-xs px-3.5 py-1.5 rounded-full text-stone-300 hover:text-amber-200 border border-stone-800 hover:border-amber-500/40 transition-colors">
+                    <button onclick="KuroApp.openLoginModal()" class="text-xs px-3.5 py-1.5 rounded-full text-stone-300 hover:text-amber-200 border border-stone-800 hover:border-amber-500/40 transition-colors font-medium">
                         MASUK
                     </button>
-                    <button onclick="KuroApp.openWhitelistModal('invite')" class="btn-outline-gold text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5 font-medium">
+                    <a href="whitelist.php" class="btn-outline-gold text-xs px-3.5 py-1.5 rounded-full flex items-center gap-1.5 font-medium">
                         <i data-lucide="key" class="w-3 h-3 text-amber-400"></i>
                         <span>AKSES VIP</span>
-                    </button>
+                    </a>
                 </div>
             `;
             if (adminBtn) adminBtn.classList.add('hidden');
@@ -1709,17 +1717,7 @@ const KuroApp = {
     // ----------------------------------------------------
     toggleAdminDesk: function() {
         this.playZenChime('chime');
-        const section = document.getElementById('admin-section');
-        const showroom = document.getElementById('showroom-section');
-        if (!section) return;
-
-        if (section.classList.contains('hidden')) {
-            section.classList.remove('hidden');
-            section.scrollIntoView({ behavior: 'smooth' });
-            this.refreshAdminData();
-        } else {
-            section.classList.add('hidden');
-        }
+        window.location.href = 'admin.php';
     },
 
     refreshAdminData: async function() {
@@ -1740,13 +1738,13 @@ const KuroApp = {
         const tabs = ['orders', 'products', 'whitelist', 'invites'];
         tabs.forEach(t => {
             const btn = document.getElementById(`admin-tab-btn-${t}`);
-            const pane = document.getElementById(`admin-tab-pane-${t}`);
+            const pane = document.getElementById(`admin-panel-${t}`) || document.getElementById(`admin-tab-pane-${t}`);
             if (btn && pane) {
                 if (t === tabName) {
-                    btn.className = 'admin-tab-btn px-4 py-2.5 rounded-xl text-xs font-serif-luxury font-bold tracking-wider flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0 transition-all';
+                    btn.className = 'px-5 py-3 rounded-t-xl bg-stone-900 border-t border-x border-amber-400/60 text-amber-300 font-bold flex items-center gap-2 transition-all';
                     pane.classList.remove('hidden');
                 } else {
-                    btn.className = 'admin-tab-btn px-4 py-2.5 rounded-xl text-xs font-serif-luxury font-bold tracking-wider flex items-center gap-2 text-stone-400 hover:text-white border border-transparent shrink-0 transition-all';
+                    btn.className = 'px-5 py-3 rounded-t-xl text-stone-400 hover:text-white hover:bg-stone-900/50 flex items-center gap-2 transition-all';
                     pane.classList.add('hidden');
                 }
             }
@@ -1766,19 +1764,23 @@ const KuroApp = {
             const data = await res.json();
             if (data.success) {
                 const s = data.data;
-                const elOrders = document.getElementById('stat-total-orders');
-                const elFulfillment = document.getElementById('stat-pending-fulfillment');
-                const elApplicants = document.getElementById('stat-pending-applicants');
+                const elOrders = document.getElementById('stat-total-orders') || document.getElementById('admin-stats-total-orders');
+                const elFulfillment = document.getElementById('stat-pending-fulfillment') || document.getElementById('admin-stats-pending-fulfillment');
+                const elApplicants = document.getElementById('stat-pending-applicants') || document.getElementById('admin-stats-pending-whitelist');
                 const elApproved = document.getElementById('stat-approved-members');
-                const elFlacons = document.getElementById('stat-available-flacons');
-                const elRev = document.getElementById('stat-total-revenue');
+                const elFlacons = document.getElementById('stat-available-flacons') || document.getElementById('admin-stats-available');
+                const elRev = document.getElementById('stat-total-revenue') || document.getElementById('admin-stats-revenue');
+                const elPaid = document.getElementById('admin-stats-paid-orders');
+                const elUnpaid = document.getElementById('admin-stats-unpaid-orders');
 
                 if (elOrders) elOrders.textContent = s.total_orders || 0;
                 if (elFulfillment) elFulfillment.textContent = s.pending_fulfillment || 0;
                 if (elApplicants) elApplicants.textContent = s.pending_requests || 0;
                 if (elApproved) elApproved.textContent = s.approved_members || 0;
-                if (elFlacons) elFlacons.textContent = `${s.available_flacons || 0} / ${s.total_flacons || 0}`;
+                if (elFlacons) elFlacons.textContent = (s.available_flacons !== undefined) ? s.available_flacons : 0;
                 if (elRev) elRev.textContent = s.total_revenue_formatted || 'Rp 0';
+                if (elPaid) elPaid.textContent = s.paid_orders || 0;
+                if (elUnpaid) elUnpaid.textContent = s.unpaid_orders || 0;
 
                 // Badges on tabs
                 const bOrders = document.getElementById('badge-admin-orders-count');
@@ -1793,6 +1795,40 @@ const KuroApp = {
         }
     },
 
+    filterAdminOrders: function(type, value) {
+        if (type === 'payment') {
+            this.state.adminPaymentFilter = value;
+            ['all', 'pending', 'confirmed'].forEach(s => {
+                const btn = document.getElementById(`filter-pay-${s}`);
+                if (btn) {
+                    const isActive = (s === 'all' && !value) || (s === value);
+                    btn.className = isActive 
+                        ? 'px-2.5 py-1 rounded-lg text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold' 
+                        : 'px-2.5 py-1 rounded-lg text-xs bg-stone-900 text-stone-400 hover:text-white border border-stone-800';
+                }
+            });
+        } else if (type === 'fulfillment') {
+            this.state.adminFulfillmentFilter = value;
+            ['all', 'menunggu', 'dikemas', 'dikirim', 'selesai'].forEach(s => {
+                const btn = document.getElementById(`filter-ful-${s}`);
+                if (btn) {
+                    const isActive = (s === 'all' && !value) || (s === value);
+                    btn.className = isActive 
+                        ? 'px-2.5 py-1 rounded-lg text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold' 
+                        : 'px-2.5 py-1 rounded-lg text-xs bg-stone-900 text-stone-400 hover:text-white border border-stone-800';
+                }
+            });
+        }
+        this.loadAdminOrders();
+    },
+
+    searchAdminOrders: function(query) {
+        clearTimeout(this.state.searchDebounceTimer);
+        this.state.searchDebounceTimer = setTimeout(() => {
+            this.loadAdminOrders();
+        }, 300);
+    },
+
     // ----------------------------------------------------
     // Admin: Orders & Fulfillment Management
     // ----------------------------------------------------
@@ -1800,8 +1836,8 @@ const KuroApp = {
         const container = document.getElementById('admin-orders-list');
         if (!container) return;
 
-        const payFilter = document.getElementById('admin-filter-payment')?.value || '';
-        const fulFilter = document.getElementById('admin-filter-fulfillment')?.value || '';
+        const payFilter = this.state.adminPaymentFilter !== undefined ? this.state.adminPaymentFilter : (document.getElementById('admin-filter-payment')?.value || '');
+        const fulFilter = this.state.adminFulfillmentFilter !== undefined ? this.state.adminFulfillmentFilter : (document.getElementById('admin-filter-fulfillment')?.value || '');
         const search = document.getElementById('admin-orders-search')?.value.trim() || '';
 
         try {
@@ -2485,7 +2521,7 @@ const KuroApp = {
     // Admin: Whitelist Curation
     // ----------------------------------------------------
     loadAdminApplicants: async function() {
-        const container = document.getElementById('admin-applicants-table');
+        const container = document.getElementById('admin-whitelist-requests') || document.getElementById('admin-applicants-table');
         if (!container) return;
 
         try {
@@ -2512,7 +2548,7 @@ const KuroApp = {
                         </div>
                         ${r.status === 'pending' ? `
                             <div class="flex items-center gap-2 shrink-0">
-                                <button onclick="KuroApp.reviewApplicant(${r.id}, 'approved')" class="btn-gold px-3.5 py-1.5 rounded-lg text-xs">SETUJUI</button>
+                                <button onclick="KuroApp.reviewApplicant(${r.id}, 'approved')" class="btn-gold px-3.5 py-1.5 rounded-lg text-xs font-bold">SETUJUI</button>
                                 <button onclick="KuroApp.reviewApplicant(${r.id}, 'rejected')" class="btn-outline-gold px-3 py-1.5 rounded-lg text-xs text-rose-400">TOLAK</button>
                             </div>
                         ` : `<span class="text-xs text-stone-500 font-mono">Ditinjau</span>`}
@@ -2523,6 +2559,10 @@ const KuroApp = {
         } catch (e) {
             console.error(e);
         }
+    },
+
+    loadAdminWhitelistRequests: function() {
+        return this.loadAdminApplicants();
     },
 
     reviewApplicant: async function(requestId, decision) {
@@ -2555,45 +2595,64 @@ const KuroApp = {
             const res = await fetch('api/admin.php?action=invite_codes');
             const data = await res.json();
             if (data.success) {
-                container.innerHTML = data.data.codes.map(c => `
-                    <div class="glass-kuro p-3 rounded-xl border border-stone-800 flex items-center justify-between">
-                        <div>
-                            <div class="font-mono text-amber-300 font-bold text-xs">${c.code}</div>
-                            <div class="text-[10px] text-stone-400">${c.description || 'VIP Patron Code'}</div>
+                const codes = data.data.codes || [];
+                if (codes.length === 0) {
+                    container.innerHTML = `<div class="p-6 text-center text-stone-500 text-xs col-span-full">Belum ada kode undangan aktif.</div>`;
+                    return;
+                }
+                container.innerHTML = codes.map(c => `
+                    <div class="glass-kuro p-3.5 rounded-xl border border-stone-800 flex items-center justify-between hover:border-amber-500/30 transition-all">
+                        <div class="space-y-0.5 min-w-0">
+                            <div class="font-mono text-amber-300 font-bold text-xs truncate">${c.code}</div>
+                            <div class="text-[10px] text-stone-400 truncate">${c.description || 'VIP Patron Code'}</div>
                         </div>
-                        <div class="text-right">
-                            <span class="text-xs font-mono text-stone-300">${c.times_used} / ${c.max_uses}</span>
-                            <div class="text-[9px] text-stone-500">TERPAKAI</div>
+                        <div class="text-right shrink-0 pl-3">
+                            <span class="text-xs font-mono text-white font-bold">${c.times_used} / ${c.max_uses}</span>
+                            <div class="text-[9px] text-stone-500 font-mono">TERPAKAI</div>
                         </div>
                     </div>
                 `).join('');
+                if (window.lucide) lucide.createIcons();
             }
         } catch (e) {
             console.error(e);
         }
     },
 
-    generateNewInviteCode: async function() {
-        const descInput = document.getElementById('new-invite-desc');
-        const quotaInput = document.getElementById('new-invite-quota');
-        const desc = descInput ? descInput.value.trim() : 'VIP Access Pass';
+    generateInviteCode: async function(e) {
+        if (e) e.preventDefault();
+        const codeInput = document.getElementById('invite-custom-code');
+        const quotaInput = document.getElementById('invite-max-uses') || document.getElementById('new-invite-quota');
+        const descInput = document.getElementById('invite-notes') || document.getElementById('new-invite-desc');
+
+        const customCode = codeInput ? codeInput.value.trim() : '';
+        const desc = descInput ? descInput.value.trim() : 'VIP Patron Access Code';
         const quota = quotaInput ? parseInt(quotaInput.value) || 1 : 1;
 
         try {
             const res = await fetch('api/admin.php?action=generate_invite', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ description: desc, max_uses: quota })
+                body: JSON.stringify({ code: customCode, description: desc, max_uses: quota })
             });
             const data = await res.json();
             if (data.success) {
                 this.playZenChime('bell');
                 this.showToast(data.message, 'success');
-                this.loadAdminInviteCodes();
+                if (codeInput) codeInput.value = '';
+                if (descInput) descInput.value = '';
+                await this.loadAdminInviteCodes();
+            } else {
+                this.showToast(data.message || 'Gagal menerbitkan kode.', 'error');
             }
         } catch (e) {
             console.error(e);
+            this.showToast('Gagal menerbitkan kode undangan.', 'error');
         }
+    },
+
+    generateNewInviteCode: function() {
+        return this.generateInviteCode();
     },
 
     // ----------------------------------------------------
