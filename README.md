@@ -87,13 +87,13 @@ Setelah menekan tombol **"SELESAIKAN CHECKOUT"**, sistem Atelier Kuro langsung m
   - Tombol **"Cetak / Simpan PDF"** dengan *stylesheet print khusus* (`@media print`) untuk mencetak faktur bersih di kertas A4 tanpa background website.
   - Tombol **"Salin No. Invoice"** dengan notifikasi clipboard responsif.
 
-### 8. Toolbar Persona Penguji (1-Click Switcher)
-Terletak di bagian paling atas halaman untuk memudahkan pengujian dan presentasi:
-- **👤 Tamu (Guest):** Menguji syarat wajib login untuk Series 24 dan proteksi harga 1-of-1.
-- **🛒 Budi (Akun Gratis Series 24):** Akun gratis ujicoba untuk belanja Series 24, keranjang, checkout, dan penerbitan bukti invoice resmi.
-- **⏳ Elena (Pending):** Menunjukkan tampilan akun yang sedang menunggu kurasi.
-- **👑 Tanaka (VIP Approved):** Membuka akses penuh untuk membeli Series 24 dan karya 1-of-1.
-- **⚜️ Kuro Master (Admin):** Membuka panel kontrol pencipta parfum Kuro.
+### 8. Sistem Autentikasi Produksi & Keamanan Akun
+Otentikasi aman menggunakan enkripsi password Bcrypt dan session server-side:
+- **👤 Mode Publik (Tamu):** Pengunjung dapat melihat katalog Series 24, filosofi atelier, dan mengajukan kurasi Whitelist.
+- **🛒 Akun Anggota Terdaftar:** Pembelian Series 24, keranjang belanja, checkout, dan kwitansi invoice digital.
+- **👑 Akun VIP Kolektor (Approved):** Membuka akses harga rahasia 1-of-1, akuisisi eksklusif, dan obrolan Concierge privat.
+- **⚜️ Kuro Master (Admin):** Mengakses Panel Kurasi untuk kelola pesanan & pengiriman (Fulfillment) serta CRUD produk katalog.
+- Akses dilakukan melalui tombol **"MASUK"** dan form login modal standar (tanpa backdoor switch).
 
 ---
 
@@ -201,8 +201,10 @@ Jika Anda mendaftar akun baru dan ingin langsung mendapatkan status VIP Whitelis
      - Tombol **"Cetak / Simpan PDF"** (siap cetak A4 / simpan PDF rapi)
      - Tombol **"Salin No. Invoice"**
 
-### Ujicoba 3: 1-Click Switch Persona Toolbar
-Di bagian paling atas halaman terdapat toolbar cepat:
-- Klik **`🛒 Budi (Akun Gratis Series 24)`** untuk menguji akun gratis.
-- Klik **`👑 Tanaka (VIP Whitelist Aktif)`** untuk membuka harga rahasia 1-of-1 dan fitur akuisisi eksklusif.
-- Klik **`⚜️ Kuro Master (Creator/Admin)`** untuk membuka panel kurasi admin Kuro.
+### Ujicoba 3: Autentikasi Pengguna & Portal Kolektor
+- Klik tombol **`MASUK`** di navigasi atas.
+- Masuk dengan email & password akun:
+  * **Kuro Master (Admin):** `kuro@atelier.com` / `password123`
+  * **Tanaka (VIP Whitelist):** `tanaka@executives.co.jp` / `password123`
+  * **Akun Anggota:** `gratis@kuro.com` / `password123`
+- Setelah login, antarmuka otomatis menyesuaikan hak akses pengguna.

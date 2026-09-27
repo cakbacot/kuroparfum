@@ -53,36 +53,6 @@ $isWhitelisted = isWhitelisted();
 <body class="bg-[#070708] text-stone-200 antialiased selection:bg-amber-500/30 selection:text-amber-200">
 
     <!-- ===================================================
-         DEMO PERSONA CONTROLLER (Toolbar Penguji / Dosen)
-         =================================================== -->
-    <aside aria-label="Demo Persona Controller" class="bg-stone-950 border-b border-amber-500/20 py-1.5 px-4 text-xs font-mono">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2 text-stone-400">
-                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                <span class="text-amber-400 font-bold uppercase tracking-wider">PILIH PERSONA UJI:</span>
-                <span class="hidden sm:inline text-stone-500">Ganti peran akun dalam 1 klik untuk memvalidasi fitur PRD:</span>
-            </div>
-            <div class="flex flex-wrap items-center gap-1.5">
-                <button onclick="KuroApp.switchPersona('guest')" class="px-2.5 py-1 rounded bg-stone-900 hover:bg-stone-800 border border-stone-800 text-stone-300 hover:text-white transition-colors">
-                    👤 Tamu (Mode Publik)
-                </button>
-                <button onclick="KuroApp.switchPersona('client_free')" class="px-2.5 py-1 rounded bg-sky-950/60 hover:bg-sky-900/70 border border-sky-600/50 text-sky-300 font-semibold transition-colors">
-                    🛒 Budi (Akun Gratis Series 24)
-                </button>
-                <button onclick="KuroApp.switchPersona('client_pending')" class="px-2.5 py-1 rounded bg-amber-950/40 hover:bg-amber-950/70 border border-amber-900/50 text-amber-300 transition-colors">
-                    ⏳ Elena (Kurasi Pending)
-                </button>
-                <button onclick="KuroApp.switchPersona('client_approved')" class="px-2.5 py-1 rounded bg-emerald-950/40 hover:bg-emerald-950/70 border border-emerald-800/50 text-emerald-300 font-semibold transition-colors">
-                    👑 Tanaka (VIP Whitelist Aktif)
-                </button>
-                <button onclick="KuroApp.switchPersona('admin')" class="px-2.5 py-1 rounded bg-gradient-to-r from-amber-600 to-amber-700 text-black font-bold shadow-md hover:brightness-110 transition-all">
-                    ⚜️ Kuro Master (Creator/Admin)
-                </button>
-            </div>
-        </div>
-    </aside>
-
-    <!-- ===================================================
          MAIN EXECUTIVE NAVIGATION BAR
          =================================================== -->
     <header class="sticky top-0 z-40 glass-kuro border-b border-gold-subtle">

@@ -137,50 +137,6 @@ switch ($action) {
         ]);
         break;
 
-    case 'switch_demo_user':
-        // For development/demo convenience: allow switching between profiles instantly
-        $target = $input['target'] ?? 'client_approved';
-
-        if ($target === 'admin') {
-            $user = $db->query("SELECT * FROM users WHERE role = 'kuro_admin' LIMIT 1")->fetch();
-        } elseif ($target === 'client_free' || $target === 'free') {
-            $user = $db->query("SELECT * FROM users WHERE email = 'gratis@kuro.com' LIMIT 1")->fetch();
-            if (!$user) {
-                $user = $db->query("SELECT * FROM users WHERE role = 'client' LIMIT 1")->fetch();
-            }
-        } elseif ($target === 'client_approved') {
-            $user = $db->query("SELECT * FROM users WHERE email = 'tanaka@executives.co.jp' LIMIT 1")->fetch();
-            if (!$user) {
-                $user = $db->query("SELECT * FROM users WHERE role = 'client' AND membership_status = 'approved' LIMIT 1")->fetch();
-            }
-        } elseif ($target === 'client_pending') {
-            // Find or create pending user
-            $user = $db->query("SELECT * FROM users WHERE membership_status = 'pending' LIMIT 1")->fetch();
-            if (!$user) {
-                $hash = password_hash('password123', PASSWORD_BCRYPT);
-                $db->prepare("INSERT INTO users (name, email, password_hash, role, membership_status, title_company) VALUES ('Arthur Sterling (Kurasi Pending)', 'arthur.sterling@mayfair.co.uk', ?, 'client', 'pending', 'Patron of Fine Arts, London')")->execute([$hash]);
-                $id = (int)$db->lastInsertId();
-                $user = $db->query("SELECT * FROM users WHERE id = $id")->fetch();
-            }
-        } else {
-            // Guest mode
-            unset($_SESSION['user_id']);
-            jsonResponse(true, 'Beralih ke mode Tamu (Belum terdaftar)', [
-                'user' => null,
-                'is_whitelisted' => false
-            ]);
-        }
-
-        if ($user) {
-            $_SESSION['user_id'] = $user['id'];
-            unset($user['password_hash']);
-            jsonResponse(true, 'Beralih ke profil: ' . $user['name'] . ' (' . $user['role'] . ')', [
-                'user' => $user,
-                'is_whitelisted' => ($user['role'] === 'kuro_admin' || $user['membership_status'] === 'approved')
-            ]);
-        }
-        break;
-
     case 'logout':
         session_destroy();
         jsonResponse(true, 'Sesi berhasil diakhiri.');

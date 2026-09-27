@@ -158,36 +158,6 @@ const KuroApp = {
         lucide.createIcons();
     },
 
-    switchPersona: async function(target) {
-        this.playZenChime('chime');
-        try {
-            const res = await fetch('api/auth.php?action=switch_demo_user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ target: target })
-            });
-            const data = await res.json();
-            if (data.success) {
-                this.showToast(data.message, 'success');
-                await this.checkSession();
-                await this.loadProducts();
-                if (this.state.currentUser) {
-                    await this.loadCart();
-                } else {
-                    this.state.cart = { items: [], total_items: 0, subtotal: 0, subtotal_formatted: 'Rp 0' };
-                    this.updateCartBadge();
-                }
-                
-                if (target === 'admin' && !document.getElementById('admin-section').classList.contains('hidden')) {
-                    this.loadAdminStats();
-                }
-            }
-        } catch (e) {
-            console.error(e);
-            this.showToast('Gagal mengganti profil persona.', 'error');
-        }
-    },
-
     logout: async function() {
         this.playZenChime('chime');
         await fetch('api/auth.php?action=logout', { method: 'POST' });

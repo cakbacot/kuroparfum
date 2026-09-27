@@ -38,8 +38,6 @@ echo   Kredensial Bawaan:
 echo   - Kuro Master (Admin): kuro@atelier.com / password123
 echo   - VIP Collector (Tanaka): tanaka@executives.co.jp / password123
 echo   - Kode Undangan VIP: KURO-VIP-2026 atau SHIBUI-CHAMBER
-echo.
-echo   *Gunakan Toolbar Persona di bagian atas website untuk
-echo    berganti akun dalam 1 klik!
+echo   *Gunakan tombol 'Masuk' di navbar untuk login ke akun.
 echo ========================================================
 pause
